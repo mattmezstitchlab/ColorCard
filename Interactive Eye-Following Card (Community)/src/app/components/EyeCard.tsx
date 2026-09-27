@@ -9,6 +9,8 @@ export interface EyeCardProps {
   name?: string;
   label?: string;
   price?: number;
+  message?: string;
+  displayMode?: "ticker" | "alternating" | "static" | "stack";
 }
 
 function Eyes({ eyeWhite, pupilColor }: { eyeWhite: string; pupilColor: string }) {
@@ -47,12 +49,32 @@ function Legend({
   name,
   label,
   price,
+  message,
+  displayMode,
 }: {
   hexDisplay: string;
   name: string;
   label: string;
   price: number;
+  message: string;
+  displayMode: "ticker" | "alternating" | "static" | "stack";
 }) {
+  const text = message || label;
+  const content =
+    displayMode === "ticker" ? (
+      <div className="overflow-hidden whitespace-nowrap">
+        <div className="inline-block min-w-full animate-[marquee_10s_linear_infinite] pr-8">{text}</div>
+        <div className="inline-block animate-[marquee_10s_linear_infinite] pr-8">{text}</div>
+      </div>
+    ) :
+    displayMode === "alternating" ? (
+      <span className="animate-pulse">{text}</span>
+    ) :
+    displayMode === "stack" ? (
+      <span className="line-clamp-2">{text}</span>
+    ) : <span>{text}</span>;
+
+  return (
   return (
     <div className="w-full px-4 py-3" data-name="legend">
       <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-black/55">
@@ -62,7 +84,7 @@ function Legend({
         {name}
       </div>
       <div className="mt-1 flex items-center justify-between gap-3 text-[10px] text-black/65">
-        <span className="truncate">{label}</span>
+        <span className="min-w-0 flex-1 overflow-hidden">{content}</span>
         {price > 0 && <span className="shrink-0 font-semibold">{new Intl.NumberFormat("fr-FR", {
           style: "currency",
           currency: "EUR",
@@ -82,12 +104,14 @@ export function EyeCard({
   name = "Saxophoniste",
   label = "Cocktail",
   price = 0,
+  message = "",
+  displayMode = "ticker",
 }: EyeCardProps) {
   return (
     <div style={{ backgroundColor: cardBg }} className="relative w-full overflow-hidden">
       <div className="flex flex-col overflow-hidden">
         <Monster monsterBg={monsterBg} eyeWhite={eyeWhite} pupilColor={pupilColor} />
-        <Legend hexDisplay={hexDisplay} name={name} label={label} price={price} />
+        <Legend hexDisplay={hexDisplay} name={name} label={label} price={price} message={message} displayMode={displayMode} />
       </div>
     </div>
   );
