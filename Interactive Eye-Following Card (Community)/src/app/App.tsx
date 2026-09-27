@@ -332,27 +332,66 @@ export default function App() {
             <div className="mt-8 border border-[#303030] bg-[#111] p-4 text-[10px] leading-5 text-[#777]"><strong className="text-white">Étape suivante :</strong> placer les cartes sélectionnées dans les moments du jeu, puis définir horaires, lieux, déplacements et relations.</div>
           </div>}
 
-          {view === "registre" && <div className="mx-auto max-w-5xl p-8">
-            <div className="mb-6 grid grid-cols-3 gap-3">
-              <div className="border border-[#303030] bg-[#111] p-4"><div className="text-[9px] uppercase tracking-[0.16em] text-[#666]">Registre</div><div className="mt-1 text-2xl">{participants.length}</div><div className="mt-1 text-[9px] text-[#666]">personnes</div></div>
-              <div className="border border-[#303030] bg-[#111] p-4"><div className="text-[9px] uppercase tracking-[0.16em] text-[#666]">Présents</div><div className="mt-1 text-2xl">{presentCount}</div><div className="mt-1 text-[9px] text-[#666]">réponses positives</div></div>
-              <div className="border border-[#303030] bg-[#111] p-4"><div className="text-[9px] uppercase tracking-[0.16em] text-[#666]">À répondre</div><div className="mt-1 text-2xl">{pendingCount}</div><div className="mt-1 text-[9px] text-[#666]">invitations ouvertes</div></div>
+          {view === "registre" && <div className="mx-auto max-w-6xl p-8">
+            <div className="mb-7 flex items-end justify-between border-b border-[#252525] pb-5">
+              <div>
+                <div className="text-[9px] uppercase tracking-[0.2em] text-[#666]">Cartes du mariage</div>
+                <h1 className="mt-1 text-3xl font-bold uppercase tracking-tight">Le registre</h1>
+                <p className="mt-2 max-w-xl text-[10px] leading-5 text-[#777]">Chaque personne devient une carte. Pas de tableau à remplir : le rôle, la présence et les informations vivent sur la carte.</p>
+              </div>
+              <div className="text-right text-[9px] uppercase tracking-[0.12em] text-[#666]">
+                {participants.length} personnes · {presentCount} présentes · {pendingCount} à répondre
+              </div>
             </div>
-            <div className="mb-6 border border-[#303030] bg-[#111] p-4"><SectionLabel>Ajouter une personne</SectionLabel><div className="flex gap-2">
-              <input value={participantDraft} onChange={(e) => setParticipantDraft(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addParticipant()} placeholder="Prénom Nom" className={inputClass + " flex-1"} />
-              <select value={participantRole} onChange={(e) => setParticipantRole(e.target.value as ParticipantRole)} className={inputClass + " w-[130px]"}>{(["Invité","Témoin","Famille","Marié"] as ParticipantRole[]).map((r) => <option key={r}>{r}</option>)}</select>
-              <button onClick={addParticipant} className="bg-white px-4 text-[9px] font-bold uppercase tracking-wide text-black">Ajouter</button>
-            </div></div>
-            <div className="border border-[#303030] bg-[#111]"><div className="grid grid-cols-[1fr_120px_120px_80px_1fr] border-b border-[#303030] px-4 py-3 text-[9px] uppercase tracking-[0.14em] text-[#666]"><span>Nom / carte</span><span>Rôle</span><span>Présence</span><span>Invités</span><span>Indication</span></div>
-              {participants.map((p) => <div key={p.id} className="grid grid-cols-[1fr_120px_120px_80px_1fr] items-center border-b border-[#202020] px-4 py-3 last:border-0">
-                <div><div className="text-[11px] font-semibold">{p.name}</div><div className="mt-1 text-[8px] uppercase tracking-wide text-[#666]">Carte · {p.role}</div></div>
-                <select value={p.role} onChange={(e) => updateParticipant(p.id, { role: e.target.value as ParticipantRole })} className="border border-[#303030] bg-[#1d1d1d] px-2 py-1.5 text-[9px]">{(["Marié","Témoin","Invité","Famille"] as ParticipantRole[]).map((r) => <option key={r}>{r}</option>)}</select>
-                <select value={p.attendance} onChange={(e) => updateParticipant(p.id, { attendance: e.target.value as Participant["attendance"] })} className="border border-[#303030] bg-[#1d1d1d] px-2 py-1.5 text-[9px]">{(["oui","à répondre","non"] as Participant["attendance"][]).map((r) => <option key={r}>{r}</option>)}</select>
-                <input type="number" min="0" value={p.guests} onChange={(e) => updateParticipant(p.id, { guests: Number(e.target.value) })} className="w-16 border border-[#303030] bg-[#1d1d1d] px-2 py-1.5 text-[9px]" />
-                <input value={p.note} onChange={(e) => updateParticipant(p.id, { note: e.target.value })} placeholder="Allergie, besoin, remarque…" className="border border-[#303030] bg-[#1d1d1d] px-2 py-1.5 text-[9px]" />
-              </div>)}
+
+            <div className="mb-7">
+              <SectionLabel>Ajouter par carte</SectionLabel>
+              <div className="grid grid-cols-4 gap-3">
+                {(["Marié","Témoin","Invité","Famille"] as ParticipantRole[]).map((role) => (
+                  <button key={role}
+                    onClick={() => {
+                      const n = participants.filter((p) => p.role === role).length + 1;
+                      setParticipants((current) => [...current, { id: "p-" + Date.now() + "-" + n, name: role === "Invité" ? "Nouvel invité" : "Nouvelle carte", role, attendance: "à répondre", guests: 0, note: "" }]);
+                    }}
+                    className="border border-[#303030] bg-[#111] p-3 text-left transition hover:border-white hover:bg-[#181818]">
+                    <div className="mb-3 h-1 w-full" style={{ backgroundColor: CATEGORY_COLORS.Personnes }} />
+                    <div className="text-[11px] font-bold uppercase">{role}</div>
+                    <div className="mt-1 text-[9px] leading-4 text-[#666]">Créer une carte {role.toLowerCase()}</div>
+                  </button>
+                ))}
+              </div>
             </div>
-            <div className="mt-4 text-[9px] uppercase tracking-[0.12em] text-[#555]">Le registre pourra ensuite distribuer des liens personnels par rôle sans donner accès à toute l'organisation.</div>
+
+            <div className="flex flex-wrap items-start gap-6">
+              {participants.map((p) => (
+                <div key={p.id} className="relative w-[300px] sm:w-[320px]">
+                  <div className="overflow-hidden transition-transform duration-200 hover:-translate-y-1">
+                    <EyeCard
+                      monsterBg={CATEGORY_COLORS.Personnes}
+                      cardBg="#FBF0DC"
+                      eyeWhite="#FBF0DC"
+                      pupilColor="#000"
+                      hexDisplay={p.role.toUpperCase()}
+                      name={p.name}
+                      label={p.attendance === "oui" ? "Présent" : p.attendance === "non" ? "Absent" : "À répondre"}
+                      price={0}
+                    />
+                  </div>
+                  <div className="mt-2 flex items-center justify-between border border-[#303030] bg-[#111] px-3 py-2">
+                    <button
+                      onClick={() => updateParticipant(p.id, { attendance: p.attendance === "oui" ? "à répondre" : "oui" })}
+                      className="text-[9px] uppercase tracking-[0.12em] text-[#aaa] hover:text-white">
+                      {p.attendance === "oui" ? "Présent ✓" : "Confirmer présence"}
+                    </button>
+                    <span className="text-[9px] uppercase tracking-[0.12em] text-[#555]">{p.guests > 0 ? "+" + p.guests : "Carte personnelle"}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-10 border border-[#303030] bg-[#111] p-4 text-[10px] leading-5 text-[#777]">
+              <strong className="text-white">Principe :</strong> on ne remplit pas un registre. On construit le registre avec des cartes. Plus tard, chaque invité pourra recevoir sa carte personnelle par lien et compléter uniquement ce qui lui appartient.
+            </div>
           </div>}
         </div>
 
