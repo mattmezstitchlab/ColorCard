@@ -14,6 +14,16 @@ type Category =
   | "Personnes";
 
 type CardState = "disponible" | "sélectionnée" | "à confirmer";
+type ParticipantRole = "Marié" | "Témoin" | "Invité" | "Famille";
+
+interface Participant {
+  id: string;
+  name: string;
+  role: ParticipantRole;
+  attendance: "oui" | "non" | "à répondre";
+  guests: number;
+  note: string;
+}
 
 interface CardData {
   id: string;
@@ -134,6 +144,14 @@ const PRESETS: CardData[] = CATEGORIES.flatMap((category) =>
   }))
 );
 
+const INITIAL_PARTICIPANTS: Participant[] = [
+  { id: "p-1", name: "Les mariés", role: "Marié", attendance: "oui", guests: 0, note: "" },
+  { id: "p-2", name: "Paul Martin", role: "Témoin", attendance: "à répondre", guests: 0, note: "" },
+  { id: "p-3", name: "Claire Martin", role: "Témoin", attendance: "oui", guests: 0, note: "" },
+  { id: "p-4", name: "Jean Dupont", role: "Invité", attendance: "oui", guests: 1, note: "Sans gluten" },
+  { id: "p-5", name: "Sophie Dupont", role: "Invité", attendance: "à répondre", guests: 0, note: "" },
+];
+
 function newCard(category: Category = "Musique"): CardData {
   return {
     id: "custom-" + Date.now(),
@@ -175,6 +193,10 @@ export default function App() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [showLibrary, setShowLibrary] = useState(true);
+  const [view, setView] = useState<"cartes" | "registre">("cartes");
+  const [participants, setParticipants] = useState<Participant[]>(INITIAL_PARTICIPANTS);
+  const [participantDraft, setParticipantDraft] = useState("");
+  const [participantRole, setParticipantRole] = useState<ParticipantRole>("Invité");
 
   const selected = cards.find((card) => card.id === selectedId) ?? null;
 
@@ -194,6 +216,8 @@ export default function App() {
   );
 
   const selectedCount = cards.filter((c) => c.state === "sélectionnée").length;
+  const presentCount = participants.filter((p) => p.attendance === "oui").length;
+  const pendingCount = participants.filter((p) => p.attendance === "à répondre").length;
   const selectedBudget = cards
     .filter((c) => c.state === "sélectionnée")
     .reduce((sum, c) => sum + c.price, 0);
@@ -217,6 +241,21 @@ export default function App() {
   const reset = () => {
     setCards(PRESETS);
     setSelectedId(null);
+    setParticipants(INITIAL_PARTICIPANTS);
+  };
+
+  const addParticipant = () => {
+    const name = participantDraft.trim();
+    if (!name) return;
+    setParticipants((current) => [
+      ...current,
+      { id: "p-" + Date.now(), name, role: participantRole, attendance: "à répondre", guests: 0, note: "" },
+    ]);
+    setParticipantDraft("");
+  };
+
+  const updateParticipant = (id: string, patch: Partial<Participant>) => {
+    setParticipants((current) => current.map((p) => (p.id === id ? { ...p, ...patch } : p)));
   };
 
   return (
@@ -299,22 +338,17 @@ export default function App() {
       <main className="relative flex min-w-0 flex-1 flex-col overflow-hidden">
         <div className="flex shrink-0 items-center justify-between border-b border-[#262626] px-6 py-3">
           <div>
-            <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#777]">Jeu de cartes</div>
-            <div className="mt-1 text-sm">Choisir · éditer · comparer · observer</div>
+            <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#777]">Jeu de mariage</div>
+            <div className="mt-1 text-sm">{view === "cartes" ? "Choisir · éditer · comparer · observer" : "Registre des participants"}</div>
           </div>
-          <div className="flex items-center gap-5 text-[10px] uppercase tracking-[0.14em] text-[#777]">
-            <span>{selectedCount} sélectionnée{selectedCount > 1 ? "s" : ""}</span>
-            <span>{money(selectedBudget)}</span>
+          <div className="flex items-center gap-2">
+            <button onClick={() => setView("cartes")} className="border px-3 py-1.5 text-[9px] uppercase tracking-wide" style={{ borderColor: view === "cartes" ? "#fff" : "#303030", color: view === "cartes" ? "#fff" : "#666" }}>Cartes</button>
+            <button onClick={() => setView("registre")} className="border px-3 py-1.5 text-[9px] uppercase tracking-wide" style={{ borderColor: view === "registre" ? "#fff" : "#303030", color: view === "registre" ? "#fff" : "#666" }}>Registre · {participants.length}</button>
           </div>
         </div>
 
-        <div
-          className="flex-1 overflow-auto"
-          style={{
-            backgroundImage: "radial-gradient(circle, #252525 1px, transparent 1px)",
-            backgroundSize: "24px 24px",
-          }}
-        >
+        <div className="flex-1 overflow-auto" style={{ backgroundImage: "radial-gradient(circle, #252525 1px, transparent 1px)", backgroundSize: "24px 24px" }}>
+          {view === "cartes" ? (
           <div className="flex flex-wrap items-start gap-6 p-8">
             {visible.map((card) => (
               <div key={card.id} className="group relative">
@@ -354,11 +388,43 @@ export default function App() {
               </div>
             ))}
           </div>
+          ) : (
+            <div className="mx-auto max-w-5xl p-8">
+              <div className="mb-6 grid grid-cols-3 gap-3">
+                <div className="border border-[#303030] bg-[#111] p-4"><div className="text-[9px] uppercase tracking-[0.16em] text-[#666]">Registre</div><div className="mt-1 text-2xl">{participants.length}</div><div className="mt-1 text-[9px] text-[#666]">personnes enregistrées</div></div>
+                <div className="border border-[#303030] bg-[#111] p-4"><div className="text-[9px] uppercase tracking-[0.16em] text-[#666]">Présents</div><div className="mt-1 text-2xl">{presentCount}</div><div className="mt-1 text-[9px] text-[#666]">réponses positives</div></div>
+                <div className="border border-[#303030] bg-[#111] p-4"><div className="text-[9px] uppercase tracking-[0.16em] text-[#666]">À répondre</div><div className="mt-1 text-2xl">{pendingCount}</div><div className="mt-1 text-[9px] text-[#666]">invitations ouvertes</div></div>
+              </div>
+
+              <div className="mb-6 border border-[#303030] bg-[#111] p-4">
+                <SectionLabel>Ajouter une personne</SectionLabel>
+                <div className="flex gap-2">
+                  <input value={participantDraft} onChange={(e) => setParticipantDraft(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") addParticipant(); }} placeholder="Prénom Nom" className={inputClass + " flex-1"} />
+                  <select value={participantRole} onChange={(e) => setParticipantRole(e.target.value as ParticipantRole)} className={inputClass + " w-[130px]"}>{(["Invité","Témoin","Famille","Marié"] as ParticipantRole[]).map((r) => <option key={r}>{r}</option>)}</select>
+                  <button onClick={addParticipant} className="bg-white px-4 text-[9px] font-bold uppercase tracking-wide text-black">Ajouter</button>
+                </div>
+              </div>
+
+              <div className="border border-[#303030] bg-[#111]">
+                <div className="grid grid-cols-[1fr_120px_120px_80px_1fr] border-b border-[#303030] px-4 py-3 text-[9px] uppercase tracking-[0.14em] text-[#666]"><span>Nom / carte</span><span>Rôle</span><span>Présence</span><span>Invités</span><span>Indication</span></div>
+                {participants.map((p) => (
+                  <div key={p.id} className="grid grid-cols-[1fr_120px_120px_80px_1fr] items-center border-b border-[#202020] px-4 py-3 last:border-0">
+                    <div><div className="text-[11px] font-semibold">{p.name}</div><div className="mt-1 text-[8px] uppercase tracking-wide text-[#666]">Carte · {p.role}</div></div>
+                    <select value={p.role} onChange={(e) => updateParticipant(p.id, { role: e.target.value as ParticipantRole })} className="border border-[#303030] bg-[#1d1d1d] px-2 py-1.5 text-[9px]">{(["Marié","Témoin","Invité","Famille"] as ParticipantRole[]).map((r) => <option key={r}>{r}</option>)}</select>
+                    <select value={p.attendance} onChange={(e) => updateParticipant(p.id, { attendance: e.target.value as Participant["attendance"] })} className="border border-[#303030] bg-[#1d1d1d] px-2 py-1.5 text-[9px]">{(["oui","à répondre","non"] as Participant["attendance"][]).map((r) => <option key={r}>{r}</option>)}</select>
+                    <input type="number" min="0" value={p.guests} onChange={(e) => updateParticipant(p.id, { guests: Number(e.target.value) })} className="w-16 border border-[#303030] bg-[#1d1d1d] px-2 py-1.5 text-[9px]" />
+                    <input value={p.note} onChange={(e) => updateParticipant(p.id, { note: e.target.value })} placeholder="Allergie, besoin, remarque…" className="border border-[#303030] bg-[#1d1d1d] px-2 py-1.5 text-[9px]" />
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 text-[9px] uppercase tracking-[0.12em] text-[#555]">Chaque personne pourra plus tard recevoir son lien personnel pour créer / compléter sa carte sans accéder au reste du mariage.</div>
+            </div>
+          )}
         </div>
 
         <div className="flex shrink-0 items-center justify-between border-t border-[#262626] px-6 py-2 text-[9px] uppercase tracking-[0.16em] text-[#555]">
           <span>Carte = identité · domaine · service · indication · horaires · prix · état</span>
-          <span>Yeux actifs</span>
+          <span>{view === "cartes" ? "Yeux actifs" : "Registre · accès par rôle"}</span>
         </div>
       </main>
 
