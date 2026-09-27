@@ -334,6 +334,9 @@ export default function App() {
                     hexDisplay={card.service.toUpperCase()}
                     name={card.provider}
                     label={card.offer}
+                    start={card.start}
+                    end={card.end}
+                    price={card.price}
                   />
                 </div>
                 <button
@@ -354,7 +357,7 @@ export default function App() {
         </div>
 
         <div className="flex shrink-0 items-center justify-between border-t border-[#262626] px-6 py-2 text-[9px] uppercase tracking-[0.16em] text-[#555]">
-          <span>Carte = identité · service · offre · temps · prix · couleur · état</span>
+          <span>Carte = identité · domaine · service · indication · horaires · prix · état</span>
           <span>Yeux actifs</span>
         </div>
       </main>
@@ -376,7 +379,7 @@ export default function App() {
                 <Field label="Prestataire / nom">
                   <input className={inputClass} value={selected.provider} onChange={(e) => update(selected.id, { provider: e.target.value })} />
                 </Field>
-                <Field label="Catégorie">
+                <Field label="Domaine">
                   <select className={inputClass} value={selected.category} onChange={(e) => {
                     const category = e.target.value as Category;
                     update(selected.id, { category, color: CATEGORY_COLORS[category] });
@@ -384,10 +387,11 @@ export default function App() {
                     {CATEGORIES.map((category) => <option key={category}>{category}</option>)}
                   </select>
                 </Field>
-                <Field label="Couleur de la carte">
-                  <div className="flex gap-2">
-                    <input type="color" value={selected.color} onChange={(e) => update(selected.id, { color: e.target.value })} className="h-9 w-12 border-0 bg-transparent p-0" />
-                    <input className={inputClass} value={selected.color} onChange={(e) => update(selected.id, { color: e.target.value })} />
+                <Field label="Domaine / couleur">
+                  <div className="flex items-center gap-2 border border-[#303030] bg-[#191919] px-2.5 py-2">
+                    <span className="h-4 w-4 shrink-0" style={{ backgroundColor: selected.color }} />
+                    <span className="text-[10px] text-white">{selected.category}</span>
+                    <span className="ml-auto text-[9px] uppercase tracking-wide text-[#666]">automatique</span>
                   </div>
                 </Field>
               </div>
@@ -402,7 +406,7 @@ export default function App() {
                 <Field label="Offre / formule">
                   <input className={inputClass} value={selected.offer} onChange={(e) => update(selected.id, { offer: e.target.value })} />
                 </Field>
-                <Field label="Description">
+                <Field label="Indication">
                   <textarea className={inputClass + " min-h-[70px] resize-y"} value={selected.description} onChange={(e) => update(selected.id, { description: e.target.value })} />
                 </Field>
               </div>
@@ -441,7 +445,7 @@ export default function App() {
             <div className="border-t border-[#262626] pt-4">
               <SectionLabel>Expérimentation</SectionLabel>
               <p className="mb-3 text-[10px] leading-4 text-[#666]">
-                Ici, tout est volontairement éditable. Cette phase sert à découvrir le modèle de carte avant de figer les permissions et le futur PACTE.
+                Le domaine détermine automatiquement la couleur. Les horaires et les indications sont des données de la carte, pas des éléments graphiques libres.
               </p>
               <button onClick={duplicate} className="mb-2 w-full border border-[#303030] px-3 py-2 text-[10px] uppercase tracking-[0.12em] text-[#aaa] hover:text-white">Dupliquer la carte</button>
               <button
