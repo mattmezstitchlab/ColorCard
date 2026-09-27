@@ -9,6 +9,9 @@ export interface EyeCardProps {
   hexDisplay?: string;
   name?: string;
   label?: string;
+  start?: string;
+  end?: string;
+  price?: number;
 }
 
 function Eyes({ eyeWhite, pupilColor }: { eyeWhite: string; pupilColor: string }) {
@@ -71,21 +74,31 @@ function Legend({
   hexDisplay,
   name,
   label,
+  start,
+  end,
+  price,
 }: {
   hexDisplay: string;
   name: string;
   label: string;
+  start: string;
+  end: string;
+  price: number;
 }) {
   return (
     <div className="relative shrink-0 w-full" data-name="legend">
       <div className="relative size-full">
         <div className="box-border content-stretch flex flex-col gap-4 items-start justify-start px-0 py-[9px] relative w-full">
           <Hero hexDisplay={hexDisplay} name={name} />
-          <div
-            className="font-['Inter:Medium',_sans-serif] font-medium leading-[0] min-w-full not-italic relative shrink-0 text-[#000000] text-[11px] text-left"
-            style={{ width: "min-content" }}
-          >
-            <p className="block leading-[normal]">{label}</p>
+          <div className="flex w-full items-center justify-between gap-3 text-[#000000]">
+            <div className="min-w-0 truncate text-[11px] font-medium leading-[normal]">{label}</div>
+            <div className="shrink-0 text-[11px] font-semibold leading-[normal]">{start} — {end}</div>
+          </div>
+          <div className="flex w-full items-center justify-between gap-3 text-[#000000]/65">
+            <div className="min-w-0 truncate text-[9px] leading-[normal]">Prestation · horaires</div>
+            <div className="shrink-0 text-[10px] font-semibold leading-[normal]">
+              {price > 0 ? new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(price) : "—"}
+            </div>
           </div>
         </div>
       </div>
@@ -101,6 +114,9 @@ export function EyeCard({
   hexDisplay = "#0062AD",
   name = "Cookie Monster",
   label = "Sesame Street",
+  start = "14:00",
+  end = "16:00",
+  price = 0,
 }: EyeCardProps) {
   return (
     <div
@@ -110,7 +126,7 @@ export function EyeCard({
       <div className="flex flex-col justify-center overflow-clip relative size-full">
         <div className="box-border content-stretch flex flex-col gap-2 items-start justify-center p-[18px] relative">
           <Monster monsterBg={monsterBg} eyeWhite={eyeWhite} pupilColor={pupilColor} />
-          <Legend hexDisplay={hexDisplay} name={name} label={label} />
+          <Legend hexDisplay={hexDisplay} name={name} label={label} start={start} end={end} price={price} />
         </div>
       </div>
     </div>
