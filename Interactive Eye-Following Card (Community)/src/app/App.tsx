@@ -8,6 +8,8 @@ type Category =
 type CardState = "disponible" | "sélectionnée" | "à confirmer";
 type ParticipantRole = "Marié" | "Témoin" | "Invité" | "Famille";
 type GameId = "classique" | "grand" | "weekend";
+type CreationKind = "invité" | "prestataire" | "mariés";
+type AppView = "start" | "cartes" | "timeline" | "registre";
 
 interface Participant {
   id: string; name: string; role: ParticipantRole;
@@ -151,7 +153,11 @@ export default function App() {
   const [query, setQuery] = useState("");
   const [showLibrary, setShowLibrary] = useState(true);
   const [showGames, setShowGames] = useState(true);
-  const [view, setView] = useState<"cartes" | "timeline" | "registre">("cartes");
+  const [view, setView] = useState<AppView>("start");
+  const [creationKind, setCreationKind] = useState<CreationKind | null>(null);
+  const [creationName, setCreationName] = useState("");
+  const [creationContact, setCreationContact] = useState("");
+  const [creationPreset, setCreationPreset] = useState<CardData | null>(null);
   const [participants, setParticipants] = useState<Participant[]>(INITIAL_PARTICIPANTS);
   const [participantDraft, setParticipantDraft] = useState("");
   const [participantRole, setParticipantRole] = useState<ParticipantRole>("Invité");
@@ -182,7 +188,11 @@ export default function App() {
     setQuery("");
     setSelectedIds([]);
     setCards((current) => current.map((card) => ({ ...card, state: "disponible" })));
-    setView("cartes");
+    setView("start");
+    setCreationKind(null);
+    setCreationName("");
+    setCreationContact("");
+    setCreationPreset(null);
   };
 
   const reset = () => {
@@ -206,9 +216,57 @@ export default function App() {
   const updateParticipant = (id: string, patch: Partial<Participant>) =>
     setParticipants((current) => current.map((p) => p.id === id ? { ...p, ...patch } : p));
 
+  const startCreation = (kind: CreationKind) => {
+    setCreationKind(kind);
+    setCreationName("");
+    setCreationContact("");
+    setCreationPreset(null);
+  };
+
+  const createFirstCard = () => {
+    const name = creationName.trim();
+    if (!creationKind || !name) return;
+
+    if (creationKind === "prestataire") {
+      const base = creationPreset ?? PRESETS.find((card) => card.category === "Musique")!;
+      const created: CardData = {
+        ...base,
+        id: "custom-" + Date.now(),
+        provider: name,
+        state: "sélectionnée",
+      };
+      setCards((current) => [...current, created]);
+      setSelectedIds((current) => [...current, created.id]);
+    } else {
+      const role: ParticipantRole = creationKind === "mariés" ? "Marié" : "Invité";
+      setParticipants((current) => [...current, {
+        id: "p-" + Date.now(),
+        name,
+        role,
+        attendance: "à répondre",
+        guests: 0,
+        note: creationContact.trim(),
+      }]);
+    }
+
+    setCreationKind(null);
+    setCreationName("");
+    setCreationContact("");
+    setCreationPreset(null);
+    setView(creationKind === "prestataire" ? "cartes" : "registre");
+  };
+
+  const backToStart = () => {
+    setCreationKind(null);
+    setCreationName("");
+    setCreationContact("");
+    setCreationPreset(null);
+    setView("start");
+  };
+
   return (
     <div className="flex h-screen w-full overflow-hidden bg-[#0c0c0c] text-white">
-      <aside className="flex w-[310px] shrink-0 flex-col border-r border-[#262626] bg-[#111]">
+      <aside className={`${view === "start" ? "hidden" : "flex"} w-[310px] shrink-0 flex-col border-r border-[#262626] bg-[#111]`}>
         <header className="border-b border-[#262626] px-5 py-4">
           <div className="flex items-center gap-2"><Eye size={16} /><span className="text-[11px] font-bold uppercase tracking-[0.2em]">COLORCARD / MARIAGE</span></div>
           <p className="mt-2 text-[10px] leading-4 text-[#777]">Un jeu de cartes organisé. Les yeux restent le signal visuel central.</p>
@@ -292,6 +350,93 @@ export default function App() {
         </div>
 
         <div className="flex-1 overflow-auto" style={{ backgroundImage: "radial-gradient(circle, #252525 1px, transparent 1px)", backgroundSize: "24px 24px" }}>
+          {view === "start" && <div className="mx-auto flex min-h-full max-w-6xl flex-col justify-center p-10">
+            <div className="mx-auto w-full max-w-5xl">
+              <div className="mb-10 max-w-2xl">
+                <div className="text-[9px] font-semibold uppercase tracking-[0.22em] text-[#666]">COLORCARD · PREMIÈRE CARTE</div>
+                <h1 className="mt-3 text-4xl font-bold uppercase tracking-[-0.03em]">Commencez par créer une carte.</h1>
+                <p className="mt-3 max-w-xl text-[12px] leading-6 text-[#777]">Pas de registre vide. Pas de formulaire de départ. On choisit d’abord qui ou quoi entre dans le mariage.</p>
+              </div>
+
+              {!creationKind && <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                {([
+                  ["invité", "INVITÉ", "Une personne qui participe au mariage.", CATEGORY_COLORS.Personnes, "PERSONNE"],
+                  ["prestataire", "PRESTATAIRE", "Un professionnel ou un service du mariage.", CATEGORY_COLORS.Musique, "SERVICE"],
+                  ["mariés", "FUTURS MARIÉS", "Le couple au centre du jeu.", CATEGORY_COLORS.Mariés, "COUPLE"],
+                ] as Array<[CreationKind, string, string, string, string]>).map(([kind, title, description, color, label]) => (
+                  <button key={kind} onClick={() => startCreation(kind)}
+                    className="group border border-[#303030] bg-[#111] text-left transition hover:-translate-y-1 hover:border-white">
+                    <div className="h-2" style={{ backgroundColor: color }} />
+                    <div className="p-4">
+                      <div className="mb-5 h-[150px]">
+                        <EyeCard monsterBg={color} cardBg="#FBF0DC" eyeWhite="#FBF0DC" pupilColor="#000" hexDisplay={label} name={title} label="Créer cette carte" price={0} />
+                      </div>
+                      <div className="mt-6 text-[14px] font-bold uppercase">{title}</div>
+                      <div className="mt-2 text-[10px] leading-5 text-[#777]">{description}</div>
+                      <div className="mt-5 text-[9px] font-semibold uppercase tracking-[0.16em] text-white">Choisir cette carte →</div>
+                    </div>
+                  </button>
+                ))}
+              </div>}
+
+              {creationKind && <div className="grid gap-8 lg:grid-cols-[minmax(300px,380px)_1fr]">
+                <div>
+                  <div className="mb-3 text-[9px] uppercase tracking-[0.18em] text-[#666]">Carte en création</div>
+                  <div className="border-4 border-white/10">
+                    <EyeCard
+                      monsterBg={creationKind === "mariés" ? CATEGORY_COLORS.Mariés : creationKind === "invité" ? CATEGORY_COLORS.Personnes : (creationPreset?.color ?? CATEGORY_COLORS.Musique)}
+                      cardBg="#FBF0DC" eyeWhite="#FBF0DC" pupilColor="#000"
+                      hexDisplay={creationKind === "mariés" ? "COUPLE" : creationKind === "invité" ? "INVITÉ" : (creationPreset?.service ?? "PRESTATAIRE").toUpperCase()}
+                      name={creationName || (creationKind === "mariés" ? "Futurs mariés" : creationKind === "invité" ? "Nouvel invité" : "Votre prestataire")}
+                      label={creationKind === "mariés" ? "Carte du couple" : creationKind === "invité" ? "Carte personnelle" : (creationPreset?.offer ?? "Choisir un service")}
+                      price={creationPreset?.price ?? 0}
+                    />
+                  </div>
+                  <button onClick={backToStart} className="mt-4 text-[9px] uppercase tracking-[0.14em] text-[#666] hover:text-white">← Changer de type</button>
+                </div>
+
+                <div className="border border-[#303030] bg-[#111] p-6">
+                  <div className="text-[9px] uppercase tracking-[0.18em] text-[#666]">Informations de départ</div>
+                  <h2 className="mt-2 text-2xl font-bold uppercase">Construire la carte</h2>
+                  <p className="mt-2 max-w-xl text-[10px] leading-5 text-[#777]">Seulement les informations nécessaires pour créer l’objet. Le reste viendra ensuite dans son contexte.</p>
+
+                  {creationKind === "prestataire" && <div className="mt-6">
+                    <div className="mb-3 text-[9px] uppercase tracking-[0.14em] text-[#666]">Quel type de prestataire ?</div>
+                    <div className="grid grid-cols-2 gap-2">
+                      {PRESETS.filter((card) => card.category !== "Personnes").slice(0, 12).map((preset) => (
+                        <button key={preset.id} onClick={() => setCreationPreset(preset)}
+                          className="border px-3 py-2 text-left transition"
+                          style={{ borderColor: creationPreset?.id === preset.id ? "#fff" : "#303030", backgroundColor: creationPreset?.id === preset.id ? "#1d1d1d" : "transparent" }}>
+                          <div className="text-[10px] font-semibold">{preset.provider}</div>
+                          <div className="mt-1 text-[8px] uppercase text-[#666]">{preset.category} · {preset.service}</div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>}
+
+                  <div className="mt-6">
+                    <div className="mb-2 text-[9px] uppercase tracking-[0.14em] text-[#666]">{creationKind === "mariés" ? "Noms des futurs mariés" : creationKind === "prestataire" ? "Nom du prestataire" : "Nom de l’invité"}</div>
+                    <input value={creationName} onChange={(e) => setCreationName(e.target.value)}
+                      placeholder={creationKind === "mariés" ? "Prénom & Prénom" : creationKind === "prestataire" ? "Nom de l’entreprise ou du professionnel" : "Prénom Nom"}
+                      className={inputClass + " text-base"} autoFocus />
+                  </div>
+
+                  <div className="mt-4">
+                    <div className="mb-2 text-[9px] uppercase tracking-[0.14em] text-[#666]">Coordonnée utile <span className="text-[#555]">· optionnel</span></div>
+                    <input value={creationContact} onChange={(e) => setCreationContact(e.target.value)}
+                      placeholder={creationKind === "prestataire" ? "Email ou téléphone" : "Email pour la carte personnelle"}
+                      className={inputClass} />
+                  </div>
+
+                  <button onClick={createFirstCard} disabled={!creationName.trim() || (creationKind === "prestataire" && !creationPreset)}
+                    className="mt-6 w-full bg-white px-4 py-3 text-[10px] font-bold uppercase tracking-[0.14em] text-black disabled:cursor-not-allowed disabled:opacity-30">
+                    Créer la carte →
+                  </button>
+                </div>
+              </div>}
+            </div>
+          </div>}
+
           {view === "cartes" && <div className="p-8">
             <div className="mb-6 flex items-end justify-between border-b border-[#252525] pb-4">
               <div><div className="text-[9px] uppercase tracking-[0.2em] text-[#666]">Votre jeu</div><h1 className="mt-1 text-2xl font-bold uppercase tracking-tight">{game.name}</h1></div>
