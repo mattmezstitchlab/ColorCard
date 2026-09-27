@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Eye, Plus, RotateCcw, Search, Trash2, X } from "lucide-react";
+import { Eye, RotateCcw, Search } from "lucide-react";
 import { EyeCard } from "./components/EyeCard";
 
 type Category =
@@ -32,8 +32,6 @@ interface CardData {
   service: string;
   offer: string;
   description: string;
-  start: string;
-  end: string;
   price: number;
   color: string;
   state: CardState;
@@ -136,8 +134,6 @@ const PRESETS: CardData[] = CATEGORIES.flatMap((category) =>
     service,
     offer,
     description: offer,
-    start: index % 2 === 0 ? "14:00" : "18:30",
-    end: index % 2 === 0 ? "16:00" : "20:00",
     price: category === "Personnes" ? 0 : 300 + index * 75,
     color: CATEGORY_COLORS[category],
     state: "disponible",
@@ -160,8 +156,6 @@ function newCard(category: Category = "Musique"): CardData {
     service: "Service",
     offer: "Nouvelle offre",
     description: "À personnaliser",
-    start: "14:00",
-    end: "16:00",
     price: 0,
     color: CATEGORY_COLORS[category],
     state: "disponible",
@@ -190,15 +184,13 @@ const inputClass =
 export default function App() {
   const [cards, setCards] = useState<CardData[]>(PRESETS);
   const [activeCategory, setActiveCategory] = useState<Category | "Toutes">("Toutes");
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [query, setQuery] = useState("");
   const [showLibrary, setShowLibrary] = useState(true);
   const [view, setView] = useState<"cartes" | "registre">("cartes");
   const [participants, setParticipants] = useState<Participant[]>(INITIAL_PARTICIPANTS);
   const [participantDraft, setParticipantDraft] = useState("");
   const [participantRole, setParticipantRole] = useState<ParticipantRole>("Invité");
-
-  const selected = cards.find((card) => card.id === selectedId) ?? null;
 
   const visible = useMemo(
     () =>
@@ -215,32 +207,13 @@ export default function App() {
     [cards, activeCategory, query]
   );
 
-  const selectedCount = cards.filter((c) => c.state === "sélectionnée").length;
   const presentCount = participants.filter((p) => p.attendance === "oui").length;
   const pendingCount = participants.filter((p) => p.attendance === "à répondre").length;
-  const selectedBudget = cards
-    .filter((c) => c.state === "sélectionnée")
-    .reduce((sum, c) => sum + c.price, 0);
-
   const update = (id: string, patch: Partial<CardData>) =>
     setCards((current) => current.map((card) => (card.id === id ? { ...card, ...patch } : card)));
 
-  const addCard = () => {
-    const card = newCard(activeCategory === "Toutes" ? "Musique" : activeCategory);
-    setCards((current) => [card, ...current]);
-    setSelectedId(card.id);
-  };
-
-  const duplicate = () => {
-    if (!selected) return;
-    const copy = { ...selected, id: "copy-" + Date.now(), provider: selected.provider + " — copie" };
-    setCards((current) => [copy, ...current]);
-    setSelectedId(copy.id);
-  };
-
   const reset = () => {
     setCards(PRESETS);
-    setSelectedId(null);
     setParticipants(INITIAL_PARTICIPANTS);
   };
 
@@ -310,7 +283,7 @@ export default function App() {
               {visible.map((card) => (
                 <button
                   key={card.id}
-                  onClick={() => setSelectedId(card.id)}
+                  onClick={() => setSelectedIds((ids) => ids.includes(card.id) ? ids.filter((id) => id !== card.id) : [...ids, card.id])}
                   className="group flex w-full items-center gap-2 border border-transparent px-2 py-2 text-left hover:border-[#303030] hover:bg-[#191919]"
                 >
                   <span className="h-7 w-1 shrink-0" style={{ backgroundColor: card.color }} />
@@ -326,9 +299,6 @@ export default function App() {
         )}
 
         <div className="border-t border-[#262626] p-4">
-          <button onClick={addCard} className="mb-1.5 flex w-full items-center justify-center gap-2 bg-white px-3 py-2.5 text-[10px] font-bold uppercase tracking-[0.12em] text-black hover:bg-[#ddd]">
-            <Plus size={13} /> Nouvelle carte
-          </button>
           <button onClick={reset} className="flex w-full items-center justify-center gap-2 border border-[#303030] px-3 py-2 text-[10px] uppercase tracking-[0.12em] text-[#888] hover:text-white">
             <RotateCcw size={12} /> Réinitialiser
           </button>
@@ -339,7 +309,7 @@ export default function App() {
         <div className="flex shrink-0 items-center justify-between border-b border-[#262626] px-6 py-3">
           <div>
             <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#777]">Jeu de mariage</div>
-            <div className="mt-1 text-sm">{view === "cartes" ? "Choisir · éditer · comparer · observer" : "Registre des participants"}</div>
+            <div className="mt-1 text-sm">{view === "cartes" ? "Choisir les cartes. Les horaires viendront ensuite dans la Timeline." : "Registre des participants"}</div>
           </div>
           <div className="flex items-center gap-2">
             <button onClick={() => setView("cartes")} className="border px-3 py-1.5 text-[9px] uppercase tracking-wide" style={{ borderColor: view === "cartes" ? "#fff" : "#303030", color: view === "cartes" ? "#fff" : "#666" }}>Cartes</button>
@@ -353,10 +323,10 @@ export default function App() {
             {visible.map((card) => (
               <div key={card.id} className="group relative">
                 <div
-                  onClick={() => setSelectedId(card.id)}
+                  onClick={() => setSelectedIds((ids) => ids.includes(card.id) ? ids.filter((id) => id !== card.id) : [...ids, card.id])}
                   className="cursor-pointer transition-transform duration-200 hover:-translate-y-1 w-[300px] sm:w-[320px]"
                   style={{
-                    outline: selectedId === card.id ? "2px solid white" : "2px solid transparent",
+                    outline: selectedIds.includes(card.id) ? "2px solid white" : "2px solid transparent",
                     outlineOffset: 6,
                   }}
                 >
@@ -368,8 +338,6 @@ export default function App() {
                     hexDisplay={card.service.toUpperCase()}
                     name={card.provider}
                     label={card.offer}
-                    start={card.start}
-                    end={card.end}
                     price={card.price}
                   />
                 </div>
@@ -423,7 +391,7 @@ export default function App() {
         </div>
 
         <div className="flex shrink-0 items-center justify-between border-t border-[#262626] px-6 py-2 text-[9px] uppercase tracking-[0.16em] text-[#555]">
-          <span>Carte = identité · domaine · service · indication · horaires · prix · état</span>
+          <span>Carte = identité · domaine · service · offre · prix · état</span>
           <span>{view === "cartes" ? "Yeux actifs" : "Registre · accès par rôle"}</span>
         </div>
       </main>
