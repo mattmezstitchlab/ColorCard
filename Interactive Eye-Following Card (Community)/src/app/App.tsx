@@ -202,7 +202,11 @@ export default function App() {
     setGameId("classique");
     setActiveCategory("Toutes");
     setQuery("");
-    setView("cartes");
+    setView("start");
+    setCreationKind(null);
+    setCreationName("");
+    setCreationContact("");
+    setCreationPreset(null);
   };
 
   const addParticipant = () => {
