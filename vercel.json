@@ -1,0 +1,7 @@
+{
+  "buildCommand": "cd \"Interactive Eye-Following Card (Community)\" && npm run build",
+  "installCommand": "cd \"Interactive Eye-Following Card (Community)\" && npm install",
+  "outputDirectory": "Interactive Eye-Following Card (Community)/dist",
+  "framework": "vite",
+  "trailingSlash": false
+}
