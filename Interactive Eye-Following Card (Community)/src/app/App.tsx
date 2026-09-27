@@ -315,12 +315,12 @@ export default function App() {
             backgroundSize: "24px 24px",
           }}
         >
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(230px,1fr))] items-start gap-6 p-8">
+          <div className="flex flex-wrap items-start gap-6 p-8">
             {visible.map((card) => (
               <div key={card.id} className="group relative">
                 <div
                   onClick={() => setSelectedId(card.id)}
-                  className="cursor-pointer transition-transform duration-200 hover:-translate-y-1"
+                  className="cursor-pointer transition-transform duration-200 hover:-translate-y-1 w-[300px] sm:w-[320px]"
                   style={{
                     outline: selectedId === card.id ? "2px solid white" : "2px solid transparent",
                     outlineOffset: 6,
