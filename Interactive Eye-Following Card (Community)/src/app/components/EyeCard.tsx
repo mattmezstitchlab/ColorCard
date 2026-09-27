@@ -63,8 +63,8 @@ function Legend({
   const content =
     displayMode === "ticker" ? (
       <div className="overflow-hidden whitespace-nowrap">
-        <div className="inline-block min-w-full animate-[marquee_10s_linear_infinite] pr-8">{text}</div>
-        <div className="inline-block animate-[marquee_10s_linear_infinite] pr-8">{text}</div>
+        <div className="colorcard-marquee inline-block min-w-full pr-8">{text}</div>
+        <div className="colorcard-marquee inline-block pr-8">{text}</div>
       </div>
     ) :
     displayMode === "alternating" ? (
