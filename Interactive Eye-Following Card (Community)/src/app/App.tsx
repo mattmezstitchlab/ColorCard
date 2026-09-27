@@ -214,6 +214,7 @@ export default function App() {
 
   const reset = () => {
     setCards(PRESETS);
+    setSelectedIds([]);
     setParticipants(INITIAL_PARTICIPANTS);
   };
 
@@ -396,105 +397,9 @@ export default function App() {
         </div>
       </main>
 
-      {selected && (
-        <aside className="flex w-[320px] shrink-0 flex-col overflow-y-auto border-l border-[#262626] bg-[#111]">
-          <div className="flex items-center justify-between border-b border-[#262626] px-5 py-4">
-            <div>
-              <div className="text-[10px] font-bold uppercase tracking-[0.18em]">Éditer la carte</div>
-              <div className="mt-1 text-[9px] text-[#666]">{selected.category}</div>
-            </div>
-            <button onClick={() => setSelectedId(null)} className="text-[#777] hover:text-white"><X size={15} /></button>
-          </div>
-
-          <div className="space-y-5 p-5">
-            <div>
-              <SectionLabel>Identité</SectionLabel>
-              <div className="space-y-3">
-                <Field label="Prestataire / nom">
-                  <input className={inputClass} value={selected.provider} onChange={(e) => update(selected.id, { provider: e.target.value })} />
-                </Field>
-                <Field label="Domaine">
-                  <select className={inputClass} value={selected.category} onChange={(e) => {
-                    const category = e.target.value as Category;
-                    update(selected.id, { category, color: CATEGORY_COLORS[category] });
-                  }}>
-                    {CATEGORIES.map((category) => <option key={category}>{category}</option>)}
-                  </select>
-                </Field>
-                <Field label="Domaine / couleur">
-                  <div className="flex items-center gap-2 border border-[#303030] bg-[#191919] px-2.5 py-2">
-                    <span className="h-4 w-4 shrink-0" style={{ backgroundColor: selected.color }} />
-                    <span className="text-[10px] text-white">{selected.category}</span>
-                    <span className="ml-auto text-[9px] uppercase tracking-wide text-[#666]">automatique</span>
-                  </div>
-                </Field>
-              </div>
-            </div>
-
-            <div>
-              <SectionLabel>Service</SectionLabel>
-              <div className="space-y-3">
-                <Field label="Service">
-                  <input className={inputClass} value={selected.service} onChange={(e) => update(selected.id, { service: e.target.value })} />
-                </Field>
-                <Field label="Offre / formule">
-                  <input className={inputClass} value={selected.offer} onChange={(e) => update(selected.id, { offer: e.target.value })} />
-                </Field>
-                <Field label="Indication">
-                  <textarea className={inputClass + " min-h-[70px] resize-y"} value={selected.description} onChange={(e) => update(selected.id, { description: e.target.value })} />
-                </Field>
-              </div>
-            </div>
-
-            <div>
-              <SectionLabel>Temps & prix</SectionLabel>
-              <div className="grid grid-cols-2 gap-2">
-                <Field label="Début"><input type="time" className={inputClass} value={selected.start} onChange={(e) => update(selected.id, { start: e.target.value })} /></Field>
-                <Field label="Fin"><input type="time" className={inputClass} value={selected.end} onChange={(e) => update(selected.id, { end: e.target.value })} /></Field>
-              </div>
-              <div className="mt-3">
-                <Field label="Prix (€)"><input type="number" className={inputClass} value={selected.price} onChange={(e) => update(selected.id, { price: Number(e.target.value) })} /></Field>
-              </div>
-            </div>
-
-            <div>
-              <SectionLabel>État</SectionLabel>
-              <div className="grid grid-cols-3 gap-1">
-                {(["disponible", "sélectionnée", "à confirmer"] as CardState[]).map((state) => (
-                  <button
-                    key={state}
-                    onClick={() => update(selected.id, { state })}
-                    className="border px-2 py-2 text-[9px] uppercase tracking-wide"
-                    style={{
-                      borderColor: selected.state === state ? "#fff" : "#303030",
-                      color: selected.state === state ? "#fff" : "#666",
-                    }}
-                  >
-                    {state}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="border-t border-[#262626] pt-4">
-              <SectionLabel>Expérimentation</SectionLabel>
-              <p className="mb-3 text-[10px] leading-4 text-[#666]">
-                Le domaine détermine automatiquement la couleur. Les horaires et les indications sont des données de la carte, pas des éléments graphiques libres.
-              </p>
-              <button onClick={duplicate} className="mb-2 w-full border border-[#303030] px-3 py-2 text-[10px] uppercase tracking-[0.12em] text-[#aaa] hover:text-white">Dupliquer la carte</button>
-              <button
-                onClick={() => {
-                  setCards((current) => current.filter((card) => card.id !== selected.id));
-                  setSelectedId(null);
-                }}
-                className="flex w-full items-center justify-center gap-2 border border-[#402020] px-3 py-2 text-[10px] uppercase tracking-[0.12em] text-[#b66] hover:text-[#f88]"
-              >
-                <Trash2 size={12} /> Supprimer
-              </button>
-            </div>
-          </div>
-        </aside>
-      )}
+    </div>
+  );
+}
     </div>
   );
 }
