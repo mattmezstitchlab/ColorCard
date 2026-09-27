@@ -34,7 +34,7 @@ function Monster({
   return (
     <div
       style={{ backgroundColor: monsterBg }}
-      className="relative shrink-0 h-[432px] w-full overflow-clip"
+      className="relative shrink-0 aspect-[1.586/1] w-full overflow-clip"
       data-name="monster"
     >
       <div className="flex flex-col items-center justify-center overflow-clip relative size-full">
@@ -51,13 +51,13 @@ function Hero({ hexDisplay, name }: { hexDisplay: string; name: string }) {
     <div className="relative shrink-0 w-full" data-name="hero">
       <div className="box-border content-stretch flex flex-col items-start justify-start leading-[0] not-italic p-0 relative text-[#000000] text-left w-full">
         <div
-          className="font-['Inter:Bold',_sans-serif] font-bold min-w-full relative shrink-0 text-[64px]"
+          className="font-['Inter:Bold',_sans-serif] font-bold min-w-full relative shrink-0 text-[28px]"
           style={{ width: "min-content" }}
         >
-          <p className="block leading-[68px] text-[64px] font-bold">{hexDisplay}</p>
+          <p className="block leading-[30px] text-[28px] font-bold">{hexDisplay}</p>
         </div>
         <div
-          className="font-['Inter:Medium',_sans-serif] font-medium min-w-full relative shrink-0 text-[24px]"
+          className="font-['Inter:Medium',_sans-serif] font-medium min-w-full relative shrink-0 text-[15px]"
           style={{ width: "min-content" }}
         >
           <p className="block leading-[normal] text-[24px]">{name}</p>
@@ -79,10 +79,10 @@ function Legend({
   return (
     <div className="relative shrink-0 w-full" data-name="legend">
       <div className="relative size-full">
-        <div className="box-border content-stretch flex flex-col gap-[55px] items-start justify-start px-0 py-[9px] relative w-full">
+        <div className="box-border content-stretch flex flex-col gap-4 items-start justify-start px-0 py-[9px] relative w-full">
           <Hero hexDisplay={hexDisplay} name={name} />
           <div
-            className="font-['Inter:Medium',_sans-serif] font-medium leading-[0] min-w-full not-italic relative shrink-0 text-[#000000] text-[16px] text-left"
+            className="font-['Inter:Medium',_sans-serif] font-medium leading-[0] min-w-full not-italic relative shrink-0 text-[#000000] text-[11px] text-left"
             style={{ width: "min-content" }}
           >
             <p className="block leading-[normal]">{label}</p>
@@ -105,7 +105,7 @@ export function EyeCard({
   return (
     <div
       style={{ backgroundColor: cardBg }}
-      className="relative w-full max-w-[458px]"
+      className="relative w-full max-w-[380px]"
     >
       <div className="flex flex-col justify-center overflow-clip relative size-full">
         <div className="box-border content-stretch flex flex-col gap-2 items-start justify-center p-[18px] relative">
