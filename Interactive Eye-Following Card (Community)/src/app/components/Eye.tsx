@@ -17,13 +17,11 @@ export function Eye({
   const eyeRef = useRef<HTMLDivElement>(null);
   const [pupilPosition, setPupilPosition] = useState({ x: 0, y: 0 });
 
-  const defaultPosition = isRightEye
-    ? { x: 119.032 - 102, y: 117.787 - 102 }
-    : { x: 74.8272 - 102, y: 78.3184 - 102 };
+  const defaultPosition = { x: 0, y: 0 };
 
   useEffect(() => {
-    setPupilPosition({ x: defaultPosition.x, y: defaultPosition.y });
-  }, [defaultPosition.x, defaultPosition.y]);
+    setPupilPosition(defaultPosition);
+  }, []);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -36,7 +34,7 @@ export function Eye({
       const dy = e.clientY - eyeCenterY;
       const distance = Math.sqrt(dx * dx + dy * dy);
       const eyeRadius = eyeRect.width / 2;
-      const pupilRadius = 38;
+      const pupilRadius = eyeRect.width * 0.18;
       const maxMovement = eyeRadius - pupilRadius - 5;
 
       if (distance < 1) {
@@ -65,17 +63,17 @@ export function Eye({
 
     window.addEventListener("mousemove", handleMouseMove);
     return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, [defaultPosition.x, defaultPosition.y]);
+  }, []);
 
   return (
     <div
       ref={eyeRef}
-      className={`relative shrink-0 size-[204px] rounded-full overflow-hidden ${className}`}
+      className={`relative shrink-0 size-[92px] rounded-full overflow-hidden ${className}`}
       style={{ backgroundColor: eyeColor }}
       data-name="eye"
     >
       <div
-        className="absolute rounded-full size-[76px]"
+        className="absolute rounded-full size-[34px]"
         style={{
           backgroundColor: pupilColor,
           top: "50%",
