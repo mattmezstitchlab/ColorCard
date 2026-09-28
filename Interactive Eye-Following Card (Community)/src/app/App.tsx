@@ -16,6 +16,8 @@ interface CardAssignment {
   contextId: string;
   message: string;
   displayMode: DisplayMode;
+  time: string;
+  location: string;
 }
 
 interface ColorCardRecord {
@@ -81,6 +83,9 @@ export default function App() {
   const [message, setMessage] = useState("");
   const [displayMode, setDisplayMode] = useState<DisplayMode>("ticker");
   const [selectedContextId, setSelectedContextId] = useState("");
+  const [assignmentTime, setAssignmentTime] = useState("");
+  const [assignmentLocation, setAssignmentLocation] = useState("");
+  const [viewMode, setViewMode] = useState<"registry" | "timeline">("registry");
   const [filter, setFilter] = useState("Toutes");
   const [search, setSearch] = useState("");
   const [newContextName, setNewContextName] = useState("");
@@ -91,6 +96,16 @@ export default function App() {
   const activeCard = cards.find((card) => card.id === activeId) ?? null;
   const selectedContext = contexts.find((context) => context.id === selectedContextId) ?? null;
   const activeAssignment = activeCard?.assignments.find((assignment) => assignment.contextId === selectedContextId) ?? null;
+
+  const timelineItems = useMemo(() => cards.flatMap((card) => card.assignments.flatMap((assignment) => {
+    const context = contexts.find((item) => item.id === assignment.contextId);
+    if (!context || !context.date || !assignment.time) return [];
+    const timestamp = new Date(`${context.date}T${assignment.time}`).getTime();
+    if (Number.isNaN(timestamp)) return [];
+    return [{ id: `${card.id}-${assignment.contextId}`, timestamp, time: assignment.time, card, assignment, context, location: assignment.location || card.city || context.city }];
+  })).sort((a, b) => a.timestamp - b.timestamp), [cards, contexts]);
+
+  const timelineAvailable = timelineItems.length > 0;
 
   const previewCategory = deriveCategory(role);
   const previewColor = colorFor(previewCategory);
@@ -126,6 +141,8 @@ export default function App() {
     setMessage("");
     setDisplayMode("ticker");
     setSelectedContextId("");
+    setAssignmentTime("");
+    setAssignmentLocation("");
   };
 
   const createContext = () => {
@@ -162,7 +179,7 @@ export default function App() {
       message: message.trim(),
       displayMode,
       assignments: selectedContextId
-        ? [{ contextId: selectedContextId, message: message.trim(), displayMode }]
+        ? [{ contextId: selectedContextId, message: message.trim(), displayMode, time: assignmentTime, location: assignmentLocation.trim() }]
         : [],
     };
     setCards((current) => [...current, card]);
@@ -178,8 +195,8 @@ export default function App() {
     if (!activeCard || !selectedContextId) return;
     const clean = message.trim();
     const assignments = activeCard.assignments.some((a) => a.contextId === selectedContextId)
-      ? activeCard.assignments.map((a) => a.contextId === selectedContextId ? { ...a, message: clean, displayMode } : a)
-      : [...activeCard.assignments, { contextId: selectedContextId, message: clean, displayMode }];
+      ? activeCard.assignments.map((a) => a.contextId === selectedContextId ? { ...a, message: clean, displayMode, time: assignmentTime, location: assignmentLocation.trim() } : a)
+      : [...activeCard.assignments, { contextId: selectedContextId, message: clean, displayMode, time: assignmentTime, location: assignmentLocation.trim() }];
     updateActive({ assignments });
     setMessage("");
   };
@@ -192,7 +209,7 @@ export default function App() {
     }
     const assignments = activeCard.assignments.some((a) => a.contextId === selectedContextId)
       ? activeCard.assignments.map((a) => a.contextId === selectedContextId ? { ...a, displayMode: mode } : a)
-      : [...activeCard.assignments, { contextId: selectedContextId, message: activeCard.message, displayMode: mode }];
+      : [...activeCard.assignments, { contextId: selectedContextId, message: activeCard.message, displayMode: mode, time: assignmentTime, location: assignmentLocation.trim() }];
     updateActive({ assignments });
   };
 
@@ -200,6 +217,8 @@ export default function App() {
     if (!activeCard || !selectedContextId) return;
     updateActive({ assignments: activeCard.assignments.filter((a) => a.contextId !== selectedContextId) });
     setSelectedContextId("");
+    setAssignmentTime("");
+    setAssignmentLocation("");
   };
 
   const deleteCard = (id: string) => {
@@ -215,7 +234,10 @@ export default function App() {
     setDetails(card.details);
     setMessage(card.message);
     setDisplayMode(card.displayMode);
-    setSelectedContextId(card.assignments[0]?.contextId ?? "");
+    const firstAssignment = card.assignments[0];
+    setSelectedContextId(firstAssignment?.contextId ?? "");
+    setAssignmentTime(firstAssignment?.time ?? "");
+    setAssignmentLocation(firstAssignment?.location ?? "");
   };
 
   return (
@@ -312,6 +334,13 @@ export default function App() {
                     if (assignment) {
                       setMessage(assignment.message);
                       setDisplayMode(assignment.displayMode);
+                      setAssignmentTime(assignment.time ?? "");
+                      setAssignmentLocation(assignment.location ?? "");
+                    } else {
+                      setMessage(activeCard?.message ?? "");
+                      setDisplayMode(activeCard?.displayMode ?? "ticker");
+                      setAssignmentTime("");
+                      setAssignmentLocation("");
                     }
                   }} className="min-w-0 flex-1 border border-[#303030] bg-[#1a1a1a] px-3 py-2.5 text-[10px] text-white outline-none focus:border-white">
                     <option value="">Aucun contexte — carte générale</option>
@@ -326,7 +355,9 @@ export default function App() {
                   <input value={newContextDate} onChange={(e) => setNewContextDate(e.target.value)} placeholder="Date" className="w-full border border-[#303030] bg-[#1a1a1a] px-2 py-2.5 text-[10px] text-white outline-none focus:border-white" />
                   <button onClick={createContext} disabled={!newContextName.trim()} className="border border-white px-4 py-2.5 text-[9px] font-bold uppercase tracking-[0.1em] text-white disabled:opacity-25">Créer</button>
                 </div>
-                {contexts.length > 0 && (
+                  )}
+
+        {contexts.length > 0 && (
                   <div className="mt-3 flex flex-wrap gap-1.5">
                     {contexts.map((context) => (
                       <button key={context.id} onClick={() => setSelectedContextId(context.id)} className="border px-2 py-1 text-[8px] uppercase tracking-[0.08em]" style={{ borderColor: selectedContextId === context.id ? "#fff" : "#303030", color: selectedContextId === context.id ? "#fff" : "#666" }}>
@@ -335,6 +366,17 @@ export default function App() {
                     ))}
                   </div>
                 )}
+              </div>
+
+              <div className="mt-4 grid gap-2 sm:grid-cols-[.55fr_1fr]">
+                <label className="block">
+                  <span className="mb-1 block text-[8px] uppercase tracking-[0.14em] text-[#666]">Hora</span>
+                  <input type="time" value={assignmentTime} onChange={(e) => setAssignmentTime(e.target.value)} className="w-full border border-[#303030] bg-[#1a1a1a] px-3 py-2.5 text-[11px] text-white outline-none focus:border-white" />
+                </label>
+                <label className="block">
+                  <span className="mb-1 block text-[8px] uppercase tracking-[0.14em] text-[#666]">Où ?</span>
+                  <input value={assignmentLocation} onChange={(e) => setAssignmentLocation(e.target.value)} placeholder="Lieu, adresse, salle…" className="w-full border border-[#303030] bg-[#1a1a1a] px-3 py-2.5 text-[11px] text-white outline-none focus:border-white" />
+                </label>
               </div>
 
               <div className="mt-4 flex items-end gap-2">
@@ -386,6 +428,47 @@ export default function App() {
         </section>
 
         <section className="mt-14 border-t border-[#252525] pt-7">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <div className="text-[9px] uppercase tracking-[0.2em] text-[#666]">Lecture</div>
+              <div className="mt-1 text-[18px] font-bold uppercase tracking-tight">{viewMode === "timeline" ? "Tout le monde, dans le temps" : "Le registre"}</div>
+            </div>
+            <div className="flex gap-1">
+              <button onClick={() => setViewMode("registry")} className="border px-3 py-2 text-[8px] uppercase tracking-[0.1em]" style={{ borderColor: viewMode === "registry" ? "#fff" : "#303030", color: viewMode === "registry" ? "#fff" : "#666" }}>Registre</button>
+              <button onClick={() => setViewMode("timeline")} className="border px-3 py-2 text-[8px] uppercase tracking-[0.1em]" style={{ borderColor: viewMode === "timeline" ? "#fff" : "#303030", color: viewMode === "timeline" ? "#fff" : "#666" }}>Timeline{timelineAvailable ? ` · ${timelineItems.length}` : ""}</button>
+            </div>
+          </div>
+
+          {viewMode === "timeline" ? (
+            <div className="mt-8">
+              {timelineItems.length === 0 ? (
+                <div className="border border-dashed border-[#303030] p-10 text-center">
+                  <div className="text-[10px] uppercase tracking-[0.15em] text-[#666]">Timeline en attente</div>
+                  <p className="mx-auto mt-2 max-w-lg text-[11px] leading-5 text-[#777]">Ajoutez une date au contexte et une heure à une carte associée. La Timeline se construit automatiquement, sans créer de nouvelle donnée.</p>
+                </div>
+              ) : (
+                <div className="relative">
+                  <div className="absolute bottom-0 left-[66px] top-0 w-px bg-[#303030]" />
+                  <div className="space-y-2">
+                    {timelineItems.map((item) => (
+                      <button key={item.id} onClick={() => { selectCard(item.card); setSelectedContextId(item.context.id); setMessage(item.assignment.message); setDisplayMode(item.assignment.displayMode); setAssignmentTime(item.assignment.time ?? ""); setAssignmentLocation(item.assignment.location ?? ""); }} className="relative grid w-full grid-cols-[54px_24px_1fr] gap-2 text-left group">
+                        <div className="pt-3 text-right text-[10px] font-bold tabular-nums text-[#888]">{item.time}</div>
+                        <div className="relative flex justify-center pt-4"><span className="z-10 h-2 w-2 rounded-full border border-white bg-[#0c0c0c]" /></div>
+                        <div className="border border-[#303030] bg-[#111] p-4 transition-colors group-hover:border-white">
+                          <div className="flex flex-wrap items-baseline justify-between gap-2">
+                            <div className="text-[13px] font-bold uppercase">{item.card.name}</div>
+                            <div className="text-[8px] uppercase tracking-[0.12em] text-[#666]">{item.card.role}</div>
+                          </div>
+                          <div className="mt-2 text-[9px] uppercase tracking-[0.1em] text-[#777]">{item.context.name} · {item.location || "Lieu non renseigné"}</div>
+                          {item.assignment.message && <div className="mt-2 text-[11px] text-[#bbb]">“{item.assignment.message}”</div>}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <div className="text-[9px] uppercase tracking-[0.2em] text-[#666]">Votre registre</div>
