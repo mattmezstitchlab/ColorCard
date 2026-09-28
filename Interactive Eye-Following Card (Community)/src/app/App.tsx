@@ -33,6 +33,10 @@ interface ColorCardRecord {
   assignments: CardAssignment[];
   pattern: string;
   patternAnimated: boolean;
+  patternColor?: string;
+  patternScale?: number;
+  patternOpacity?: number;
+  patternRotation?: number;
 }
 
 const PATTERNS = ["none", "stripes", "checker", "dots", "grid", "waves", "tiger", "leopard", "zebra", "scales", "bubbles", "botanical", "diagonal", "pixel", "prism"] as const;
@@ -99,6 +103,10 @@ export default function App() {
   const [customColor, setCustomColor] = useState("#2D6CDF");
   const [pattern, setPattern] = useState<string>("none");
   const [patternAnimated, setPatternAnimated] = useState(false);
+  const [patternColor, setPatternColor] = useState("#000000");
+  const [patternScale, setPatternScale] = useState(28);
+  const [patternOpacity, setPatternOpacity] = useState(22);
+  const [patternRotation, setPatternRotation] = useState(45);
   const [filter, setFilter] = useState("Toutes");
   const [search, setSearch] = useState("");
   const [newContextName, setNewContextName] = useState("");
@@ -160,6 +168,10 @@ export default function App() {
     setCustomColor("#2D6CDF");
     setPattern("none");
     setPatternAnimated(false);
+    setPatternColor("#000000");
+    setPatternScale(28);
+    setPatternOpacity(22);
+    setPatternRotation(45);
   };
 
   const createContext = () => {
@@ -193,6 +205,10 @@ export default function App() {
       color: customColor,
       pattern,
       patternAnimated,
+      patternColor,
+      patternScale,
+      patternOpacity,
+      patternRotation,
       city: city.trim(),
       details: details.trim(),
       message: message.trim(),
@@ -257,6 +273,10 @@ export default function App() {
     setCustomColor(card.color);
     setPattern(card.pattern ?? "none");
     setPatternAnimated(card.patternAnimated ?? false);
+    setPatternColor(card.patternColor ?? "#000000");
+    setPatternScale(card.patternScale ?? 28);
+    setPatternOpacity(card.patternOpacity ?? 22);
+    setPatternRotation(card.patternRotation ?? 45);
     const firstAssignment = card.assignments[0];
     setSelectedContextId(firstAssignment?.contextId ?? "");
     setAssignmentTime(firstAssignment?.time ?? "");
@@ -309,6 +329,10 @@ export default function App() {
                 displayMode={visibleMode}
                 pattern={activeCard?.pattern ?? pattern}
                 patternAnimated={activeCard?.patternAnimated ?? patternAnimated}
+                patternColor={activeCard?.patternColor ?? patternColor}
+                patternScale={activeCard?.patternScale ?? patternScale}
+                patternOpacity={activeCard?.patternOpacity ?? patternOpacity}
+                patternRotation={activeCard?.patternRotation ?? patternRotation}
               />
               {activeCard && (
                 <button onClick={() => deleteCard(activeCard.id)} className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center bg-black/75 text-white hover:bg-black" aria-label="Supprimer la carte">
@@ -466,6 +490,24 @@ export default function App() {
                             </div>
                           </div>
                         </div>
+                        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                          <label className="block">
+                            <span className="mb-1 block text-[8px] uppercase tracking-[0.12em] text-[#666]">Couleur du motif</span>
+                            <input type="color" value={patternColor} onChange={(e) => { setPatternColor(e.target.value); updateActive({ patternColor: e.target.value }); }} className="h-9 w-full cursor-pointer border border-[#303030] bg-transparent p-0.5" />
+                          </label>
+                          <label className="block">
+                            <span className="mb-1 block text-[8px] uppercase tracking-[0.12em] text-[#666]">Taille · {patternScale}px</span>
+                            <input type="range" min="8" max="80" value={patternScale} onChange={(e) => { const v=Number(e.target.value); setPatternScale(v); updateActive({ patternScale:v }); }} className="w-full" />
+                          </label>
+                          <label className="block">
+                            <span className="mb-1 block text-[8px] uppercase tracking-[0.12em] text-[#666]">Opacité · {patternOpacity}%</span>
+                            <input type="range" min="5" max="60" value={patternOpacity} onChange={(e) => { const v=Number(e.target.value); setPatternOpacity(v); updateActive({ patternOpacity:v }); }} className="w-full" />
+                          </label>
+                        </div>
+                        <label className="mt-3 block">
+                          <span className="mb-1 block text-[8px] uppercase tracking-[0.12em] text-[#666]">Rotation · {patternRotation}°</span>
+                          <input type="range" min="0" max="180" value={patternRotation} onChange={(e) => { const v=Number(e.target.value); setPatternRotation(v); updateActive({ patternRotation:v }); }} className="w-full" />
+                        </label>
                         <label className="mt-4 flex items-center gap-2 text-[8px] uppercase tracking-[0.12em] text-[#777]">
                           <input type="checkbox" checked={patternAnimated} onChange={(e) => { setPatternAnimated(e.target.checked); updateActive({ patternAnimated: e.target.checked }); }} />
                           Motif animé
@@ -586,7 +628,7 @@ export default function App() {
             <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {filteredCards.map((card) => (
                 <button key={card.id} onClick={() => selectCard(card)} className="group relative text-left transition-transform hover:-translate-y-1">
-                  <EyeCard monsterBg={card.color} cardBg="#FBF0DC" eyeWhite="#FBF0DC" pupilColor="#000" hexDisplay={card.category.toUpperCase()} name={card.name} label={[card.role, card.city].filter(Boolean).join(" · ")} message={card.message || "Ajouter un message…"} displayMode={card.displayMode} pattern={card.pattern ?? "none"} patternAnimated={card.patternAnimated ?? false} />
+                  <EyeCard monsterBg={card.color} cardBg="#FBF0DC" eyeWhite="#FBF0DC" pupilColor="#000" hexDisplay={card.category.toUpperCase()} name={card.name} label={[card.role, card.city].filter(Boolean).join(" · ")} message={card.message || "Ajouter un message…"} displayMode={card.displayMode} pattern={card.pattern ?? "none"} patternAnimated={card.patternAnimated ?? false} patternColor={card.patternColor ?? "#000000"} patternScale={card.patternScale ?? 28} patternOpacity={card.patternOpacity ?? 22} patternRotation={card.patternRotation ?? 45} />
                   <div className="border-t border-black/10 bg-[#FBF0DC] px-4 pb-3 text-[8px] uppercase tracking-[0.08em] text-black/45">
                     <div className="flex items-center gap-1"><Link2 size={9} /> {card.assignments.length} contexte{card.assignments.length !== 1 ? "s" : ""}</div>
                     <div className="mt-1 truncate">{card.details || "Aucune indication supplémentaire"}</div>
