@@ -86,6 +86,7 @@ export default function App() {
   const [assignmentTime, setAssignmentTime] = useState("");
   const [assignmentLocation, setAssignmentLocation] = useState("");
   const [viewMode, setViewMode] = useState<"registry" | "timeline">("registry");
+  const [formStep, setFormStep] = useState(1);
   const [filter, setFilter] = useState("Toutes");
   const [search, setSearch] = useState("");
   const [newContextName, setNewContextName] = useState("");
@@ -143,6 +144,7 @@ export default function App() {
     setSelectedContextId("");
     setAssignmentTime("");
     setAssignmentLocation("");
+    setFormStep(1);
   };
 
   const createContext = () => {
@@ -184,6 +186,7 @@ export default function App() {
     };
     setCards((current) => [...current, card]);
     setActiveId(card.id);
+    setFormStep(2);
   };
 
   const updateActive = (patch: Partial<ColorCardRecord>) => {
@@ -291,137 +294,178 @@ export default function App() {
             </div>
 
             <div className="mt-4 border border-[#303030] bg-[#111] p-5">
-              <div className="mb-4 flex items-center justify-between">
-                <div>
-                  <div className="text-[9px] uppercase tracking-[0.18em] text-[#666]">{activeCard ? "Carte sélectionnée" : "Créer une carte"}</div>
-                  <div className="mt-1 text-[13px] font-bold uppercase">{activeCard ? activeCard.name : "Personnaliser"}</div>
-                </div>
-                {activeCard && <button onClick={resetEditor} className="text-[9px] uppercase tracking-[0.14em] text-[#666] hover:text-white">Nouvelle carte</button>}
-              </div>
+              {!activeCard ? (
+                <>
+                  <div className="mb-5 flex items-end justify-between gap-4">
+                    <div>
+                      <div className="text-[9px] uppercase tracking-[0.18em] text-[#666]">Créer une carte</div>
+                      <div className="mt-1 text-[13px] font-bold uppercase">Étape {formStep} / 4</div>
+                    </div>
+                    <div className="text-[8px] uppercase tracking-[0.12em] text-[#555]">Une seule carte pour commencer</div>
+                  </div>
 
-              <div className="grid gap-3 sm:grid-cols-2">
-                <label className="block">
-                  <span className="mb-1 block text-[8px] uppercase tracking-[0.14em] text-[#666]">Rôle / fonction</span>
-                  <input value={role} onChange={(e) => setRole(e.target.value)} placeholder="Ex. Saxophoniste, Maman, DJ…" className="w-full border border-[#303030] bg-[#1a1a1a] px-3 py-2.5 text-[11px] text-white outline-none focus:border-white" />
-                </label>
-                <label className="block">
-                  <span className="mb-1 block text-[8px] uppercase tracking-[0.14em] text-[#666]">Nom</span>
-                  <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nom affiché" className="w-full border border-[#303030] bg-[#1a1a1a] px-3 py-2.5 text-[11px] text-white outline-none focus:border-white" />
-                </label>
-              </div>
-
-              <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                <label className="block">
-                  <span className="mb-1 block text-[8px] uppercase tracking-[0.14em] text-[#666]">Ville</span>
-                  <input value={city} onChange={(e) => setCity(e.target.value)} placeholder="Valenciennes, Paris…" className="w-full border border-[#303030] bg-[#1a1a1a] px-3 py-2.5 text-[11px] text-white outline-none focus:border-white" />
-                </label>
-                <label className="block">
-                  <span className="mb-1 block text-[8px] uppercase tracking-[0.14em] text-[#666]">Indication</span>
-                  <input value={details} onChange={(e) => setDetails(e.target.value)} placeholder="Agence, spécialité, groupe…" className="w-full border border-[#303030] bg-[#1a1a1a] px-3 py-2.5 text-[11px] text-white outline-none focus:border-white" />
-                </label>
-              </div>
-
-              <div className="mt-5 border-t border-[#242424] pt-4">
-                <div className="mb-2 flex items-center justify-between">
-                  <div className="text-[8px] uppercase tracking-[0.14em] text-[#666]">Contexte / événement</div>
-                  {activeCard && selectedContext && <button onClick={deleteAssignment} className="text-[8px] uppercase tracking-[0.1em] text-[#666] hover:text-white">Retirer de ce contexte</button>}
-                </div>
-                <div className="flex gap-2">
-                  <select value={selectedContextId} onChange={(e) => {
-                    const id = e.target.value;
-                    setSelectedContextId(id);
-                    const assignment = activeCard?.assignments.find((a) => a.contextId === id);
-                    if (assignment) {
-                      setMessage(assignment.message);
-                      setDisplayMode(assignment.displayMode);
-                      setAssignmentTime(assignment.time ?? "");
-                      setAssignmentLocation(assignment.location ?? "");
-                    } else {
-                      setMessage(activeCard?.message ?? "");
-                      setDisplayMode(activeCard?.displayMode ?? "ticker");
-                      setAssignmentTime("");
-                      setAssignmentLocation("");
-                    }
-                  }} className="min-w-0 flex-1 border border-[#303030] bg-[#1a1a1a] px-3 py-2.5 text-[10px] text-white outline-none focus:border-white">
-                    <option value="">Aucun contexte — carte générale</option>
-                    {contexts.map((context) => <option key={context.id} value={context.id}>{context.name}{context.city ? ` · ${context.city}` : ""}</option>)}
-                  </select>
-                </div>
-
-                <div className="mt-3 grid gap-2 sm:grid-cols-[1.3fr_.8fr_.9fr_.8fr_auto]">
-                  <input value={newContextName} onChange={(e) => setNewContextName(e.target.value)} placeholder="Événement, groupe, projet…" className="w-full border border-[#303030] bg-[#1a1a1a] px-3 py-2.5 text-[10px] text-white outline-none focus:border-white" />
-                  <input value={newContextKind} onChange={(e) => setNewContextKind(e.target.value)} placeholder="Type" className="w-full border border-[#303030] bg-[#1a1a1a] px-2 py-2.5 text-[10px] text-white outline-none focus:border-white" />
-                  <input value={newContextCity} onChange={(e) => setNewContextCity(e.target.value)} placeholder="Ville" className="w-full border border-[#303030] bg-[#1a1a1a] px-2 py-2.5 text-[10px] text-white outline-none focus:border-white" />
-                  <input value={newContextDate} onChange={(e) => setNewContextDate(e.target.value)} placeholder="Date" className="w-full border border-[#303030] bg-[#1a1a1a] px-2 py-2.5 text-[10px] text-white outline-none focus:border-white" />
-                  <button onClick={createContext} disabled={!newContextName.trim()} className="border border-white px-4 py-2.5 text-[9px] font-bold uppercase tracking-[0.1em] text-white disabled:opacity-25">Créer</button>
-                </div>
-
-                {contexts.length > 0 && (
-                  <div className="mt-3 flex flex-wrap gap-1.5">
-                    {contexts.map((context) => (
-                      <button key={context.id} onClick={() => setSelectedContextId(context.id)} className="border px-2 py-1 text-[8px] uppercase tracking-[0.08em]" style={{ borderColor: selectedContextId === context.id ? "#fff" : "#303030", color: selectedContextId === context.id ? "#fff" : "#666" }}>
-                        {context.name}
-                      </button>
+                  <div className="mb-5 flex gap-1">
+                    {[1, 2, 3, 4].map((step) => (
+                      <div key={step} className="h-1 flex-1" style={{ backgroundColor: step <= formStep ? "#fff" : "#303030" }} />
                     ))}
                   </div>
-                )}
-              </div>
 
-              <div className="mt-4 grid gap-2 sm:grid-cols-[.55fr_1fr]">
-                <label className="block">
-                  <span className="mb-1 block text-[8px] uppercase tracking-[0.14em] text-[#666]">Hora</span>
-                  <input type="time" value={assignmentTime} onChange={(e) => setAssignmentTime(e.target.value)} className="w-full border border-[#303030] bg-[#1a1a1a] px-3 py-2.5 text-[11px] text-white outline-none focus:border-white" />
-                </label>
-                <label className="block">
-                  <span className="mb-1 block text-[8px] uppercase tracking-[0.14em] text-[#666]">Où ?</span>
-                  <input value={assignmentLocation} onChange={(e) => setAssignmentLocation(e.target.value)} placeholder="Lieu, adresse, salle…" className="w-full border border-[#303030] bg-[#1a1a1a] px-3 py-2.5 text-[11px] text-white outline-none focus:border-white" />
-                </label>
-              </div>
+                  {formStep === 1 && (
+                    <>
+                      <div className="mb-5">
+                        <div className="text-[8px] uppercase tracking-[0.14em] text-[#666]">Carte</div>
+                        <p className="mt-1 text-[11px] leading-5 text-[#888]">Commence simplement. Le contexte et les détails viennent après.</p>
+                      </div>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <label className="block">
+                          <span className="mb-1 block text-[8px] uppercase tracking-[0.14em] text-[#666]">Nom</span>
+                          <input autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="Nom affiché" className="w-full border border-[#303030] bg-[#1a1a1a] px-3 py-3 text-[11px] text-white outline-none focus:border-white" />
+                        </label>
+                        <label className="block">
+                          <span className="mb-1 block text-[8px] uppercase tracking-[0.14em] text-[#666]">Rôle / fonction</span>
+                          <input value={role} onChange={(e) => setRole(e.target.value)} placeholder="Saxophoniste, Maman, DJ…" onKeyDown={(e) => { if (e.key === "Enter" && name.trim() && role.trim()) createCard(); }} className="w-full border border-[#303030] bg-[#1a1a1a] px-3 py-3 text-[11px] text-white outline-none focus:border-white" />
+                        </label>
+                      </div>
+                      <div className="mt-5 flex justify-end">
+                        <button onClick={createCard} disabled={!role.trim() || !name.trim()} className="bg-white px-5 py-3 text-[9px] font-bold uppercase tracking-[0.12em] text-black disabled:cursor-not-allowed disabled:opacity-25">Créer ma carte →</button>
+                      </div>
+                    </>
+                  )}
 
-              <div className="mt-4 flex items-end gap-2">
-                <label className="min-w-0 flex-1">
-                  <span className="mb-1 block text-[8px] uppercase tracking-[0.14em] text-[#666]">
-                    Message {selectedContext ? `pour « ${selectedContext.name} »` : ""}
-                  </span>
-                  <input value={message} onChange={(e) => setMessage(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") selectedContext ? saveContextMessage() : activeCard && updateActive({ message: message.trim() }); }} placeholder="Le texte sous les yeux…" className="w-full border border-[#303030] bg-[#1a1a1a] px-3 py-2.5 text-[11px] text-white outline-none focus:border-white" />
-                </label>
-                {activeCard && (
-                  <button onClick={() => selectedContext ? saveContextMessage() : updateActive({ message: message.trim() })} className="flex h-[37px] items-center gap-1.5 border border-white px-3 text-[9px] font-bold uppercase tracking-[0.1em] hover:bg-white hover:text-black">
-                    <Plus size={12} /> Instantané
-                  </button>
-                )}
-              </div>
-
-              <div className="mt-4">
-                <div className="mb-2 flex items-center justify-between">
-                  <div className="text-[8px] uppercase tracking-[0.14em] text-[#666]">Mode sous les yeux</div>
-                  {selectedContext && <div className="text-[8px] uppercase tracking-[0.1em] text-[#555]">lié à {selectedContext.name}</div>}
-                </div>
-                <div className="grid grid-cols-4 gap-1.5">
-                  {(Object.keys(MODE_LABELS) as DisplayMode[]).map((mode) => (
-                    <button key={mode} onClick={() => updateContextMode(mode)} className="border px-2 py-2 text-[8px] uppercase tracking-[0.08em]" style={{ borderColor: visibleMode === mode ? "#fff" : "#303030", color: visibleMode === mode ? "#fff" : "#666" }}>
-                      {MODE_LABELS[mode]}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="mt-4 flex items-center justify-between border-t border-[#242424] pt-4">
-                <div>
-                  <div className="text-[8px] uppercase tracking-[0.14em] text-[#666]">Catégorie automatique</div>
-                  <div className="mt-1 flex items-center gap-2 text-[10px]">
-                    <i className="h-2 w-2" style={{ backgroundColor: activeCard?.color ?? previewColor }} />
-                    {activeCard?.category ?? previewCategory}
+                  {formStep > 1 && (
+                    <div className="flex items-center justify-between">
+                      <button onClick={() => setFormStep((step) => Math.max(1, step - 1))} className="text-[9px] uppercase tracking-[0.1em] text-[#666] hover:text-white">← Retour</button>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  <div className="mb-4 flex items-center justify-between">
+                    <div>
+                      <div className="text-[9px] uppercase tracking-[0.18em] text-[#666]">Carte sélectionnée</div>
+                      <div className="mt-1 text-[13px] font-bold uppercase">{activeCard.name}</div>
+                    </div>
+                    <button onClick={resetEditor} className="text-[9px] uppercase tracking-[0.14em] text-[#666] hover:text-white">Nouvelle carte</button>
                   </div>
-                </div>
-                {!activeCard ? (
-                  <button onClick={createCard} disabled={!role.trim() || !name.trim()} className="bg-white px-5 py-2.5 text-[9px] font-bold uppercase tracking-[0.12em] text-black disabled:cursor-not-allowed disabled:opacity-25">
-                    Ajouter la carte →
-                  </button>
-                ) : (
-                  <button onClick={resetEditor} className="border border-[#303030] px-4 py-2.5 text-[9px] uppercase tracking-[0.12em] text-[#888] hover:border-white hover:text-white">Terminer</button>
-                )}
-              </div>
+
+                  <div className="mb-5 flex gap-1">
+                    {[2, 3, 4].map((step) => (
+                      <button key={step} onClick={() => setFormStep(step)} className="h-1 flex-1" style={{ backgroundColor: formStep >= step ? "#fff" : "#303030" }} aria-label={`Étape ${step}`} />
+                    ))}
+                  </div>
+
+                  {formStep === 2 && (
+                    <div>
+                      <div className="mb-4">
+                        <div className="text-[8px] uppercase tracking-[0.14em] text-[#666]">Profil</div>
+                        <p className="mt-1 text-[11px] leading-5 text-[#888]">Ajoute maintenant les informations qui situent cette carte.</p>
+                      </div>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <label className="block">
+                          <span className="mb-1 block text-[8px] uppercase tracking-[0.14em] text-[#666]">Ville</span>
+                          <input value={city} onChange={(e) => { setCity(e.target.value); updateActive({ city: e.target.value }); }} placeholder="Valenciennes, Paris…" className="w-full border border-[#303030] bg-[#1a1a1a] px-3 py-3 text-[11px] text-white outline-none focus:border-white" />
+                        </label>
+                        <label className="block">
+                          <span className="mb-1 block text-[8px] uppercase tracking-[0.14em] text-[#666]">Indication</span>
+                          <input value={details} onChange={(e) => { setDetails(e.target.value); updateActive({ details: e.target.value }); }} placeholder="Agence, spécialité, groupe…" className="w-full border border-[#303030] bg-[#1a1a1a] px-3 py-3 text-[11px] text-white outline-none focus:border-white" />
+                        </label>
+                      </div>
+                      <div className="mt-5 flex justify-between">
+                        <button onClick={() => setFormStep(1)} className="text-[9px] uppercase tracking-[0.1em] text-[#666] hover:text-white">← Carte</button>
+                        <button onClick={() => setFormStep(3)} className="bg-white px-5 py-3 text-[9px] font-bold uppercase tracking-[0.12em] text-black">Contexte →</button>
+                      </div>
+                    </div>
+                  )}
+
+                  {formStep === 3 && (
+                    <div>
+                      <div className="mb-4 flex items-center justify-between">
+                        <div>
+                          <div className="text-[8px] uppercase tracking-[0.14em] text-[#666]">Contexte / événement</div>
+                          <p className="mt-1 text-[11px] leading-5 text-[#888]">Une carte peut appartenir à plusieurs événements ou groupes.</p>
+                        </div>
+                        {selectedContext && <button onClick={deleteAssignment} className="text-[8px] uppercase tracking-[0.1em] text-[#666] hover:text-white">Retirer</button>}
+                      </div>
+
+                      <select value={selectedContextId} onChange={(e) => {
+                        const id = e.target.value;
+                        setSelectedContextId(id);
+                        const assignment = activeCard.assignments.find((a) => a.contextId === id);
+                        if (assignment) {
+                          setMessage(assignment.message);
+                          setDisplayMode(assignment.displayMode);
+                          setAssignmentTime(assignment.time ?? "");
+                          setAssignmentLocation(assignment.location ?? "");
+                        } else {
+                          setMessage(activeCard.message);
+                          setDisplayMode(activeCard.displayMode);
+                          setAssignmentTime("");
+                          setAssignmentLocation("");
+                        }
+                      }} className="w-full border border-[#303030] bg-[#1a1a1a] px-3 py-3 text-[10px] text-white outline-none focus:border-white">
+                        <option value="">Aucun contexte — carte générale</option>
+                        {contexts.map((context) => <option key={context.id} value={context.id}>{context.name}{context.city ? ` · ${context.city}` : ""}</option>)}
+                      </select>
+
+                      <div className="mt-3 grid gap-2 sm:grid-cols-[1.3fr_.8fr_.9fr_.8fr_auto]">
+                        <input value={newContextName} onChange={(e) => setNewContextName(e.target.value)} placeholder="Événement, groupe, projet…" className="w-full border border-[#303030] bg-[#1a1a1a] px-2 py-3 text-[10px] text-white outline-none focus:border-white" />
+                        <input value={newContextKind} onChange={(e) => setNewContextKind(e.target.value)} placeholder="Type" className="w-full border border-[#303030] bg-[#1a1a1a] px-2 py-3 text-[10px] text-white outline-none focus:border-white" />
+                        <input value={newContextCity} onChange={(e) => setNewContextCity(e.target.value)} placeholder="Ville" className="w-full border border-[#303030] bg-[#1a1a1a] px-2 py-3 text-[10px] text-white outline-none focus:border-white" />
+                        <input value={newContextDate} onChange={(e) => setNewContextDate(e.target.value)} placeholder="Date" className="w-full border border-[#303030] bg-[#1a1a1a] px-2 py-3 text-[10px] text-white outline-none focus:border-white" />
+                        <button onClick={createContext} disabled={!newContextName.trim()} className="border border-white px-4 py-3 text-[9px] font-bold uppercase tracking-[0.1em] text-white disabled:opacity-25">Créer</button>
+                      </div>
+
+                      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                        <label className="block">
+                          <span className="mb-1 block text-[8px] uppercase tracking-[0.14em] text-[#666]">Horaire</span>
+                          <input type="time" value={assignmentTime} onChange={(e) => setAssignmentTime(e.target.value)} className="w-full border border-[#303030] bg-[#1a1a1a] px-3 py-3 text-[11px] text-white outline-none focus:border-white" />
+                        </label>
+                        <label className="block">
+                          <span className="mb-1 block text-[8px] uppercase tracking-[0.14em] text-[#666]">Où ?</span>
+                          <input value={assignmentLocation} onChange={(e) => setAssignmentLocation(e.target.value)} placeholder="Lieu, adresse, salle…" className="w-full border border-[#303030] bg-[#1a1a1a] px-3 py-3 text-[11px] text-white outline-none focus:border-white" />
+                        </label>
+                      </div>
+
+                      <div className="mt-5 flex justify-between">
+                        <button onClick={() => setFormStep(2)} className="text-[9px] uppercase tracking-[0.1em] text-[#666] hover:text-white">← Profil</button>
+                        <button onClick={() => { if (selectedContextId) saveContextMessage(); setFormStep(4); }} className="bg-white px-5 py-3 text-[9px] font-bold uppercase tracking-[0.12em] text-black">Message →</button>
+                      </div>
+                    </div>
+                  )}
+
+                  {formStep === 4 && (
+                    <div>
+                      <div className="mb-4">
+                        <div className="text-[8px] uppercase tracking-[0.14em] text-[#666]">Message & affichage</div>
+                        <p className="mt-1 text-[11px] leading-5 text-[#888]">Le texte sous les yeux peut changer selon le contexte.</p>
+                      </div>
+                      <div className="flex items-end gap-2">
+                        <label className="min-w-0 flex-1">
+                          <span className="mb-1 block text-[8px] uppercase tracking-[0.14em] text-[#666]">Message {selectedContext ? `pour « ${selectedContext.name} »` : ""}</span>
+                          <input value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Le texte sous les yeux…" className="w-full border border-[#303030] bg-[#1a1a1a] px-3 py-3 text-[11px] text-white outline-none focus:border-white" />
+                        </label>
+                        <button onClick={() => selectedContext ? saveContextMessage() : updateActive({ message: message.trim() })} className="flex h-[40px] items-center gap-1.5 border border-white px-3 text-[9px] font-bold uppercase tracking-[0.1em] hover:bg-white hover:text-black"><Plus size={12} /> Enregistrer</button>
+                      </div>
+
+                      <div className="mt-4">
+                        <div className="mb-2 text-[8px] uppercase tracking-[0.14em] text-[#666]">Mode sous les yeux</div>
+                        <div className="grid grid-cols-4 gap-1.5">
+                          {(Object.keys(MODE_LABELS) as DisplayMode[]).map((mode) => (
+                            <button key={mode} onClick={() => updateContextMode(mode)} className="border px-2 py-2.5 text-[8px] uppercase tracking-[0.08em]" style={{ borderColor: visibleMode === mode ? "#fff" : "#303030", color: visibleMode === mode ? "#fff" : "#666" }}>
+                              {MODE_LABELS[mode]}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="mt-5 flex justify-between border-t border-[#242424] pt-4">
+                        <button onClick={() => setFormStep(3)} className="text-[9px] uppercase tracking-[0.1em] text-[#666] hover:text-white">← Contexte</button>
+                        <button onClick={() => setFormStep(2)} className="border border-[#303030] px-4 py-2.5 text-[9px] uppercase tracking-[0.12em] text-[#888] hover:border-white hover:text-white">Modifier le profil</button>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           </div>
         </section>
