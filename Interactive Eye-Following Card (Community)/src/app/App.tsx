@@ -5,404 +5,564 @@ import {
 } from "lucide-react";
 import {
   EyeCard,
-  WeddingMilestone,
+  ChildRitualMilestone,
 } from "./components/EyeCard";
 import {
   StudioLogoIcon,
 } from "./components/ModernIcons";
 import { playCardTone, toggleAudioMute, getAudioMuted } from "./utils/audioSynth";
 
-// 4 Curated Real-Life Presets
-export const PRESETS_DATA: Record<string, { title: string; subtitle: string; milestones: WeddingMilestone[] }> = {
-  mariage: {
-    title: "MARIAGE DE CHLOÉ & ALEXANDRE",
-    subtitle: "Mariage & Événement",
+// Curated Montessori & Child Rhythms Presets
+export const PRESETS_DATA: Record<string, { title: string; subtitle: string; milestones: ChildRitualMilestone[] }> = {
+  ecole: {
+    title: "JOUR D'ÉCOLE & RITUELS DU QUOTIDIEN",
+    subtitle: "Jour d'école & Maison",
+    milestones: [
+      {
+        id: "e-1",
+        name: "Réveil Doux & Habillage",
+        role: "Autonomie & Confiance en Soi",
+        color: "#FEF08A",
+        cardBg: "#FEFCE8",
+        timeSlot: "07:00 — 08:00",
+        startMinute: 420,
+        endMinute: 480,
+        location: "Chambre & Penderie",
+        message: "JE M'HABILLE SEUL ET JE RANGE MON PYJAMA",
+        phone: "PAPA & MAMAN",
+        equipment: "Vêtements préparés la veille sur la chaise basse",
+        notes: "Lumière naturelle et musique douce au réveil.",
+        agentGreeting: "BONJOUR PETIT EXPLORATEUR ! PRÊT POUR T'HABILLER TOUT SEUL ?",
+      },
+      {
+        id: "e-2",
+        name: "Petit-Déjeuner Solaire",
+        role: "Énergie & Vitalité du Matin",
+        color: "#F97316",
+        cardBg: "#FFF7ED",
+        timeSlot: "08:00 — 08:30",
+        startMinute: 480,
+        endMinute: 510,
+        location: "Cuisine & Table Familiale",
+        message: "JE MANGE MES FRUITS ET JE BOIS MON GRAND VERRE D'EAU",
+        phone: "PAPA & MAMAN",
+        equipment: "Bol, fruits frais, pain complet, carafe à ma taille",
+        notes: "Prendre le temps de savourer chaque bouchée.",
+        agentGreeting: "BON APPÉTIT ! FAIS LE PLEIN DE BELLE ÉNERGIE POUR LA JOURNÉE.",
+      },
+      {
+        id: "e-3",
+        name: "École & Découvertes",
+        role: "Curiosité & Partage en Groupe",
+        color: "#00A8E8",
+        cardBg: "#F0F9FF",
+        timeSlot: "08:30 — 12:00",
+        startMinute: 510,
+        endMinute: 720,
+        location: "Classe & Ateliers Sensoriels",
+        message: "J'APPRENDS DE NOUVELLES CHOSES ET J'AIDE MES AMIS",
+        phone: "ÉCOLE & ENSEIGNANT",
+        equipment: "Cartable léger, matériel Montessori, trousse de crayons",
+        notes: "Expériences concrètes et travail en binôme.",
+        agentGreeting: "BONNE MATINÉE D'APPRENTISSAGE ET DE BELLES DÉCOUVERTES !",
+      },
+      {
+        id: "e-4",
+        name: "Déjeuner & Récréation",
+        role: "Partage & Jeux Libres",
+        color: "#22C55E",
+        cardBg: "#F0FDF4",
+        timeSlot: "12:00 — 13:30",
+        startMinute: 720,
+        endMinute: 810,
+        location: "Cantine & Cour de Récréation",
+        message: "BON REPAS, RIRES ET JEUX EN PLEIN AIR AVEC LES COPAINS",
+        phone: "ÉCOLE & SURVEILLANCE",
+        equipment: "Ballon mousse, élastique, espace de jeux verts",
+        notes: "Mouvement libre et décharge motrice.",
+        agentGreeting: "C'EST LE MOMENT DE JOUER ET DE PROFITER DU SOLEIL !",
+      },
+      {
+        id: "e-5",
+        name: "Ateliers & Créativité",
+        role: "Dessin, Motricité & Poésie",
+        color: "#A855F7",
+        cardBg: "#FAF5FF",
+        timeSlot: "13:30 — 16:30",
+        startMinute: 810,
+        endMinute: 990,
+        location: "Atelier d'Art & Bibliothèque",
+        message: "JE PEINS, JE LIS ET JE LAISSE VOLER MON IMAGINATION",
+        phone: "ÉCOLE & MÉDIATHÈQUE",
+        equipment: "Pinceaux, gouaches naturelles, livres illustrés",
+        notes: "Création libre sans modèle imposé.",
+        agentGreeting: "LAISSE PARLER TA CRÉATIVITÉ ET TES COULEURS INTÉRIEURES !",
+      },
+      {
+        id: "e-6",
+        name: "Goûter & Temps Libre",
+        role: "Détente Saine Sans Écran",
+        color: "#FDBA74",
+        cardBg: "#FFF7ED",
+        timeSlot: "16:30 — 17:30",
+        startMinute: 990,
+        endMinute: 1050,
+        location: "Cuisine & Parc du Quartier",
+        message: "FRUIT, TARTINE ET JEUX EN PLEIN AIR SANS ÉCRAN",
+        phone: "PAPA & MAMAN",
+        equipment: "Goûter maison, gourde inox, vélo ou trottinette",
+        notes: "Transition douce après la journée d'école.",
+        agentGreeting: "BON GOÛTER ! PRENDS LE TEMPS DE SOUFFLER ET DE RIGOLER.",
+      },
+      {
+        id: "e-7",
+        name: "Concentration Montessori",
+        role: "Focus Calme & Autonomie",
+        color: "#006494",
+        cardBg: "#F0F9FF",
+        timeSlot: "17:30 — 18:30",
+        startMinute: 1050,
+        endMinute: 1110,
+        location: "Espace de Travail Silencieux",
+        message: "JE ME CONCENTRE 25 MINUTES DANS LE CALME ABSOLU",
+        phone: "PAPA & MAMAN",
+        equipment: "Minuteur visuel sablier, cahier de dessin, lampe chaude",
+        notes: "L'enfant choisit l'ordre de ses devoirs/lectures.",
+        agentGreeting: "MODE CONCENTRATION ACTIVÉ. TU EN ES TOTALEMENT CAPABLE !",
+      },
+      {
+        id: "e-8",
+        name: "Bain & Bulles d'Eau",
+        role: "Détente Corporelle & Jeu Doux",
+        color: "#38BDF8",
+        cardBg: "#F0F9FF",
+        timeSlot: "18:30 — 19:30",
+        startMinute: 1110,
+        endMinute: 1170,
+        location: "Salle de Bain",
+        message: "JEUX D'EAU, SAVON DOUX ET PYJAMA CHAUD",
+        phone: "PAPA & MAMAN",
+        equipment: "Jouets de bain en bois/silicone, serviette douce chaude",
+        notes: "Eau tiède relaxante pour faire baisser la tension du corps.",
+        agentGreeting: "DÉTENDEZ-VOUS DANS L'EAU CHAUDE ! LES BULLES SONT LÀ.",
+      },
+      {
+        id: "e-9",
+        name: "Dîner en Famille",
+        role: "Partage & Écoute Bienveillante",
+        color: "#EA580C",
+        cardBg: "#FFF7ED",
+        timeSlot: "19:30 — 20:30",
+        startMinute: 1170,
+        endMinute: 1230,
+        location: "Table Familiale",
+        message: "NOUS RACONTONS CHACUN NOTRE PLUS BEAU MOMENT DU JOUR",
+        phone: "PAPA & MAMAN",
+        equipment: "Table dressée ensemble, chandelle douce, repas chaud",
+        notes: "Règle des 3 gratitudes partagées autour de la table.",
+        agentGreeting: "BON DÎNER ENSEMBLE ! QUEL A ÉTÉ TON PLUS BEAU MOMENT ?",
+      },
+      {
+        id: "e-10",
+        name: "Histoire & Câlin du Soir",
+        role: "Sécurité Affective & Tendresse",
+        color: "#E9D5FF",
+        cardBg: "#FAF5FF",
+        timeSlot: "20:30 — 21:00",
+        startMinute: 1230,
+        endMinute: 1260,
+        location: "Lit Douillet & Cocon",
+        message: "UNE BELLE HISTOIRE APAISANTE AVANT DE FERMER LES YEUX",
+        phone: "PAPA & MAMAN",
+        equipment: "Livre illustré de contes, veilleuse tamisée, doudou",
+        notes: "Voix douce et 3 respirations profondes guidées.",
+        agentGreeting: "LE CONTE VA COMMENCER... INSTALLE-TOI CONFORTABLEMENT.",
+      },
+      {
+        id: "e-11",
+        name: "Nuit Étoilée & Sommeil",
+        role: "Régénération & Grands Rêves",
+        color: "#0B101E",
+        cardBg: "#0B101E",
+        timeSlot: "21:00 — 07:00",
+        startMinute: 1260,
+        endMinute: 420,
+        location: "Cocon de Sommeil",
+        message: "JE DORS PAISIBLEMENT, PROTÉGÉ ET EN SÉCURITÉ TOUTE LA NUIT",
+        phone: "PAPA & MAMAN",
+        equipment: "Veilleuse douce lune, obscurité protectrice, couette chaude",
+        notes: "Les yeux du totem s'apaisent pour veiller sur le sommeil.",
+        agentGreeting: "BONNE NUIT DOUCE. LES ÉTOILES VEILLENT SUR TON SOMMEIL.",
+      },
+    ],
+  },
+  mercredi: {
+    title: "MERCREDI NATURE, CRÉATION & AUTONOMIE",
+    subtitle: "Mercredi Libre",
     milestones: [
       {
         id: "m-1",
-        name: "Élodie Martin Studio",
-        role: "Make-Up Artist & Coiffure Mariée",
-        color: "#DB2777",
-        cardBg: "#FDF2F8",
-        timeSlot: "08:30 — 11:30",
-        startMinute: 510,
-        endMinute: 690,
-        location: "Suite Nuptiale · Domaine de Champlâtreux",
-        message: "MISE EN BEAUTÉ DE LA MARIÉE ET DES TÉMOINS",
-        phone: "06 12 34 56 78",
-        equipment: "Miroir LED pro, fer wavy Dyson, gamme waterproof",
-        notes: "Teint lumineux naturel et chignon bas bohème.",
-        agentGreeting: "BONJOUR ! JE GÈRE LA MISE EN BEAUTÉ DE LA MARIÉE DÈS 08H30.",
+        name: "Réveil Paisible & Dessin Libre",
+        role: "Créativité & Joie du Matin",
+        color: "#FDE047",
+        cardBg: "#FEFCE8",
+        timeSlot: "08:00 — 09:30",
+        startMinute: 480,
+        endMinute: 570,
+        location: "Chambre & Tapis Doux",
+        message: "JE CRÉE MON PROPRE DESSIN AU RÉVEIL EN PYJAMA",
+        phone: "PAPA & MAMAN",
+        equipment: "Feuilles épaisses, pastels à la cire d'abeille",
+        notes: "Pas d'horaire strict, laisser l'éveil naturel opérer.",
+        agentGreeting: "BONJOUR ! C'EST MERCREDI, JOURNÉE D'INVENTION ET DE JEU !",
       },
       {
         id: "m-2",
-        name: "Atelier Botanique Paris",
-        role: "Designer Floral & Scénographe",
-        color: "#16A34A",
+        name: "Exploration Parc & Grand Air",
+        role: "Découverte Sensorielle & Nature",
+        color: "#84CC16",
         cardBg: "#F0FDF4",
-        timeSlot: "10:00 — 13:00",
-        startMinute: 600,
-        endMinute: 780,
-        location: "Allée des Charmes & Salle de Réception",
-        message: "ARCHE FLORALE ET CENTRES DE TABLE EUCALYPTUS",
-        phone: "06 23 45 67 89",
-        equipment: "Arche en chêne massif, 14 compositions florales, rubans de soie",
-        notes: "Palette pampa, pivoines blanches et touches terracotta poudrées.",
-        agentGreeting: "BONJOUR ! TOUTES LES COMPOSITIONS FLORALES SONT PRÊTES.",
+        timeSlot: "09:30 — 12:00",
+        startMinute: 570,
+        endMinute: 720,
+        location: "Forêt & Parc Naturel",
+        message: "OBSERVATION DES OISEAUX, FEUILLES ET CABANES D'ARBRES",
+        phone: "PAPA & MAMAN",
+        equipment: "Loupe d'observation, panier en osier, bottes de pluie",
+        notes: "Ramasser des éléments naturels pour l'atelier de l'après-midi.",
+        agentGreeting: "EN AVANT POUR L'AVENTURE DANS LA NATURE ET LE GRAND AIR !",
       },
       {
         id: "m-3",
-        name: "Vintage Cars Prestige",
-        role: "Chauffeur Privé & Jaguar Type E 1968",
-        color: "#004B73",
-        cardBg: "#F0F9FF",
-        timeSlot: "12:00 — 14:00",
+        name: "Cuisine Autonome & Repas",
+        role: "Motricité Fine & Autonomie Montessori",
+        color: "#FB923C",
+        cardBg: "#FFF7ED",
+        timeSlot: "12:00 — 13:30",
         startMinute: 720,
-        endMinute: 840,
-        location: "Mairie de Paris 8e → Domaine de Champlâtreux",
-        message: "TRANSFERT DES MARIÉS EN VOITURE DE COLLECTION",
-        phone: "06 34 56 78 90",
-        equipment: "Véhicule lustré, bouteille de champagne à bord, chauffeur en livrée",
-        notes: "Itinéraire via les quais de Seine pour shooting photo cortège.",
-        agentGreeting: "BONJOUR ! LA JAGUAR TYPE E SERA PRÊTE DÈS 11H45.",
+        endMinute: 810,
+        location: "Cuisine Basse",
+        message: "JE COUPE LES LÉGUMES ET JE DRESSE LA TABLE TOUT SEUL",
+        phone: "PAPA & MAMAN",
+        equipment: "Couteau d'apprentissage sécurisé en bois, tablier d'enfant",
+        notes: "L'enfant participe à toutes les étapes du repas.",
+        agentGreeting: "C'EST TOI LE CHEF ! TES MAINS SAVENT TOUT PRÉPARER.",
       },
       {
         id: "m-4",
-        name: "Claire Vaneau",
-        role: "Officiante de Cérémonie & Conteuse",
-        color: "#9333EA",
-        cardBg: "#FAF5FF",
-        timeSlot: "14:00 — 15:30",
-        startMinute: 840,
+        name: "Temps Calme & Conte Immersif",
+        role: "Repos des Yeux & Écoute",
+        color: "#007EA7",
+        cardBg: "#F0F9FF",
+        timeSlot: "13:30 — 15:30",
+        startMinute: 810,
         endMinute: 930,
-        location: "Parc du Domaine · Clairière des Chênes",
-        message: "ÉCHANGE DES VŒUX ET RITUEL DU SABLE",
-        phone: "06 45 67 89 01",
-        equipment: "Pupitre laqué, micro HF Sennheiser, livrets personnalisés",
-        notes: "Discours des 4 témoins intégrés. Durée totale : 45 min.",
-        agentGreeting: "BONJOUR ! LE TEXTE DES VŒUX ET LE DÉROULÉ SONT PRÊTS.",
+        location: "Coussin de Lecture",
+        message: "JE PLONGE DANS MON LIVRE PRÉFÉRÉ OU J'ÉCOUTE UN CONTE",
+        phone: "PAPA & MAMAN",
+        equipment: "Boîte à histoires audio sans écran, gros pouf moelleux",
+        notes: "Musique relaxante d'ondes pures.",
+        agentGreeting: "MOMENT CALME ET DOUX POUR REPOSER TON CORPS ET TES YEUX.",
       },
       {
         id: "m-5",
-        name: "Maison Lumière Visuals",
-        role: "Photographe & Vidéaste Drone 4K",
-        color: "#CA8A04",
-        cardBg: "#FEFCE8",
-        timeSlot: "15:30 — 23:30",
+        name: "Argile, Bricolage & Bois",
+        role: "Expérimentation Manuelle",
+        color: "#9A3412",
+        cardBg: "#FFF7ED",
+        timeSlot: "15:30 — 17:30",
         startMinute: 930,
-        endMinute: 1410,
-        location: "Parc, Cocktail & Dîner · Domaine",
-        message: "SÉANCE COUPLE SUNSET ET CLICHÉS SPONTANÉS",
-        phone: "06 56 78 90 12",
-        equipment: "2 Boîtiers Sony A7IV, Drone DJI Mavic 3 Pro, éclairage nomade",
-        notes: "Shooting golden hour à 18h45. Galerie privée sous 15 jours.",
-        agentGreeting: "BONJOUR ! JE SUIS VOTRE PHOTOGRAPHE DE LA JOURNÉE.",
+        endMinute: 1050,
+        location: "Atelier Garage / Terrasse",
+        message: "JE SCULPTE, JE PONCE ET J'ASSEMBLE AVEC MES MAINS",
+        phone: "PAPA & MAMAN",
+        equipment: "Argile autodurcissante, écorces, ficelle de chanvre",
+        notes: "Créer un objet que l'enfant peut garder ou offrir.",
+        agentGreeting: "SCULPTE ET INVENTE LIBREMENT AVEC TES MAINS FABULEUSES !",
       },
       {
         id: "m-6",
-        name: "Alexandre Delacroix",
-        role: "Saxophoniste Live & Sets Jazz",
-        color: "#006494",
-        cardBg: "#FBF0DC",
-        timeSlot: "17:30 — 20:00",
-        startMinute: 1050,
-        endMinute: 1200,
-        location: "Terrasse des Jardins · Vue Panoramique",
-        message: "SET LIVE JAZZ & DEEP HOUSE AU COUCHER DU SOLEIL",
-        phone: "06 67 89 01 23",
-        equipment: "Saxophones Alto & Ténor, système son Bose L1 Pro sans fil",
-        notes: "Reprise jazz de Daft Punk à l'entrée des mariés au vin d'honneur.",
-        agentGreeting: "BONJOUR ! JE GÈRE L'AMBIANCE MUSICALE DU COCKTAIL.",
-      },
-      {
-        id: "m-7",
-        name: "Chef Antoine & Gourmet",
-        role: "Traiteur Gastronomique & Chef de Rang",
-        color: "#DC2626",
-        cardBg: "#FEF2F2",
-        timeSlot: "19:30 — 23:30",
-        startMinute: 1170,
-        endMinute: 1410,
-        location: "Grande Orangerie · 120 Couverts",
-        message: "MENU 4 TEMPS, SERVICE À L'ASSIETTE & ACCORDS METS-VINS",
-        phone: "06 78 90 12 34",
-        equipment: "Brigade de 6 cuisiniers, 8 serveurs, vaisselle dorée et cristal",
-        notes: "Option végétarienne pour 14 personnes. Dégustation validée.",
-        agentGreeting: "BONJOUR ! LE SERVICE DU DÎNER GASTRONOMIQUE EST CALIBRÉ.",
-      },
-      {
-        id: "m-8",
-        name: "Pâtisserie Céleste",
-        role: "Cake Designer & Cascade Champagne",
-        color: "#EA580C",
-        cardBg: "#FFF7ED",
-        timeSlot: "23:00 — 00:30",
-        startMinute: 1380,
-        endMinute: 30,
-        location: "Terrasse Éclairée aux Flambeaux",
-        message: "WEDDING CAKE FLORAL 4 ÉTAGES FRAMBOISE ET PISTACHE",
-        phone: "06 89 01 23 45",
-        equipment: "Support rotatif rétro-éclairé, fontaines lumineuses",
-        notes: "Livraison en camion frigorifique à 22h00 pour découpe à 23h30.",
-        agentGreeting: "BONJOUR ! LE GÂTEAU DE MARIAGE SERA LIVRÉ FRAIS À 22H00.",
-      },
-      {
-        id: "m-9",
-        name: "DJ Nightwave & Scéno FX",
-        role: "DJ Club, Scénographie Lumière & Étincelles",
-        color: "#7C3AED",
-        cardBg: "#FAF5FF",
-        timeSlot: "00:00 — 04:00",
-        startMinute: 0,
-        endMinute: 240,
-        location: "Piste de Danse · Grande Salle",
-        message: "OUVERTURE DE BAL, JET D'ÉTINCELLES FROIDES ET SET JUSQU'À L'AUBE",
-        phone: "06 90 12 34 56",
-        equipment: "Régie Pioneer CDJ-3000, 8 Lyres Beam, machines à étincelles Sparkular",
-        notes: "Ouverture de bal sur 'Can't Take My Eyes Off You' puis club house.",
-        agentGreeting: "BONJOUR ! LA SCÉNO LUMIÈRE ET LA PLAYLIST DU CLUB SONT PRÊTES.",
-      },
-    ],
-  },
-  freelance: {
-    title: "JOURNÉE DE CRÉATION & FOCUS",
-    subtitle: "Freelance & Télétravail",
-    milestones: [
-      {
-        id: "f-1",
-        name: "Café & Planification Clé",
-        role: "Mise en route & Veille",
-        color: "#F59E0B",
-        cardBg: "#FEFCE8",
-        timeSlot: "08:30 — 09:30",
-        startMinute: 510,
-        endMinute: 570,
-        location: "Bureau / Espace Créatif",
-        message: "LECTURE, VEILLE ET DÉFINITION DES 3 OBJECTIFS MAJEURS",
-        phone: "06 00 00 00 00",
-        equipment: "Carnet papier, café filtre, musique binaurale",
-        notes: "Pas d'écrans de réseaux sociaux avant 12h.",
-        agentGreeting: "BONJOUR ! PRÊT POUR UNE JOURNÉE ULTRA-PRODUCTIVE ?",
-      },
-      {
-        id: "f-2",
-        name: "Deep Work Sprint #1",
-        role: "Design, Architecture & Code",
-        color: "#006494",
-        cardBg: "#F0F9FF",
-        timeSlot: "09:30 — 12:30",
-        startMinute: 570,
-        endMinute: 750,
-        location: "Poste de travail principal",
-        message: "IMMERSION TOTALE SANS NOTIFICATIONS NI EMAILS",
-        phone: "06 00 00 00 00",
-        equipment: "Casque anti-bruit, mode Ne Pas Déranger activé",
-        notes: "Livrer la première version complète du composant.",
-        agentGreeting: "MODE FOCUS ACTIVÉ. JE FILTRE TOUTES VOS DISTRACTIONS.",
-      },
-      {
-        id: "f-3",
-        name: "Déjeuner & Marche Solaire",
-        role: "Déconnexion & Respiration",
-        color: "#16A34A",
-        cardBg: "#F0FDF4",
-        timeSlot: "12:30 — 14:00",
-        startMinute: 750,
-        endMinute: 840,
-        location: "Extérieur / Parc & Cuisine",
-        message: "REPAS SAIN, HYDRATATION ET MARCHE AU SOLEIL",
-        phone: "06 00 00 00 00",
-        equipment: "Lunettes de soleil, marche active de 30 min",
-        notes: "Zéro travail pendant cette pause.",
-        agentGreeting: "BONJOUR ! PROFITEZ DE CETTE PAUSE POUR VOUS RESSOURCER.",
-      },
-      {
-        id: "f-4",
-        name: "Live Client & Restitution",
-        role: "Présentation & Démo Produit",
-        color: "#7C3AED",
-        cardBg: "#FAF5FF",
-        timeSlot: "14:00 — 16:30",
-        startMinute: 840,
-        endMinute: 990,
-        location: "Salle de réunion virtuelle",
-        message: "DÉMO PROJET, RETOURS CLIENT ET VALIDATIONS",
-        phone: "06 00 00 00 00",
-        equipment: "Micro Shure, caméra HD, slides de restitution",
-        notes: "Prendre en note les ajustements demandés.",
-        agentGreeting: "LA DÉMO CLIENT EST PRÊTE. BONNE PRÉSENTATION !",
-      },
-      {
-        id: "f-5",
-        name: "Clôture & Inbox Zero",
-        role: "Facturation & Rangement",
-        color: "#334155",
-        cardBg: "#F8FAFC",
-        timeSlot: "16:30 — 18:00",
-        startMinute: 990,
-        endMinute: 1080,
-        location: "Bureau",
-        message: "ENVOI DES LIVRABLES, EMAILS ET PLAN POUR DEMAIN",
-        phone: "06 00 00 00 00",
-        equipment: "Outil de comptabilité, gestionnaire de tâches",
-        notes: "Fermer tous les onglets du navigateur avant de quitter.",
-        agentGreeting: "JOURNÉE ACCOMPLIE AVEC SUCCÈS. REPOSEZ-VOUS BIEN !",
-      },
-    ],
-  },
-  tournage: {
-    title: "SHOOTING MODE & FILM PUBLICITAIRE",
-    subtitle: "Régie Tournage & Production",
-    milestones: [
-      {
-        id: "t-1",
-        name: "Set Lumière & Machinerie",
-        role: "Chef Électricien & Cadreurs",
-        color: "#475569",
-        cardBg: "#F8FAFC",
-        timeSlot: "07:00 — 08:30",
-        startMinute: 420,
-        endMinute: 510,
-        location: "Studio 4 · Plaine Saint-Denis",
-        message: "MONTAGE DES PROJECTEURS, DIFFUSIONS ET TESTS CAMÉRA",
-        phone: "06 11 22 33 44",
-        equipment: "Projecteurs Aputure 600d, pied Manfrotto, retour vidéo",
-        notes: "Ambiance clair-obscur feutrée pour le plan d'ouverture.",
-        agentGreeting: "BONJOUR ! LE MATÉRIEL EST EN COURS D'INSTALLATION.",
-      },
-      {
-        id: "t-2",
-        name: "HMC & Habillage Talents",
-        role: "Make-Up Artist & Styliste",
-        color: "#DB2777",
+        name: "Danse, Rires & Musique",
+        role: "Libération Motrice & Joie",
+        color: "#FF007F",
         cardBg: "#FDF2F8",
-        timeSlot: "08:30 — 10:00",
-        startMinute: 510,
-        endMinute: 600,
-        location: "Loge Principale",
-        message: "MISE EN BEAUTÉ HAUTE COUTURE ET HABILLAGE SILHOUETTES",
-        phone: "06 22 33 44 55",
-        equipment: "Table HMC, steamer vapeur, 3 tenues validées",
-        notes: "Raccord maquillage toutes les 45 minutes.",
-        agentGreeting: "LES MODÈLES SONT PRÊTS POUR LE PLATEAU.",
-      },
-      {
-        id: "t-3",
-        name: "Tournage Séquence Master",
-        role: "Réalisateur & Équipe Image",
-        color: "#DC2626",
-        cardBg: "#FEF2F2",
-        timeSlot: "10:00 — 13:00",
-        startMinute: 600,
-        endMinute: 780,
-        location: "Plateau Principal",
-        message: "PLANS LARGES, TRAVELLINGS ET CHORÉGRAPHIE SILHOUETTES",
-        phone: "06 33 44 55 66",
-        equipment: "Caméra Arri Alexa Mini LF, optiques Cooke Anamorphic",
-        notes: "Silences plateau demandés. 12 prises prévues.",
-        agentGreeting: "MOTEUR DEMANDÉ. TOURNAGE EN COURS SUR LE PLATEAU.",
-      },
-      {
-        id: "t-4",
-        name: "Plans Sérigraphie & Détails",
-        role: "Cadreur & Équipe Son",
-        color: "#CA8A04",
-        cardBg: "#FEFCE8",
-        timeSlot: "14:00 — 17:30",
-        startMinute: 840,
-        endMinute: 1050,
-        location: "Plateau B / Table de Packshot",
-        message: "GROS PLANS PRODUIT, TEXTURES ET EFFETS DE LUMIÈRE SLOW-MO",
-        phone: "06 44 55 66 77",
-        equipment: "Objectif Macro 100mm, plateau tournant motorisé",
-        notes: "Prises à 120 images/seconde pour les ralentis.",
-        agentGreeting: "PLANS DÉTAILS ENREGISTRÉS EN TRÈS HAUTE DÉFINITION.",
-      },
-      {
-        id: "t-5",
-        name: "Dérushage & Wrap Général",
-        role: "DIT & Régisseur Général",
-        color: "#003459",
-        cardBg: "#F0F9FF",
         timeSlot: "17:30 — 19:30",
         startMinute: 1050,
         endMinute: 1170,
-        location: "Poste DIT & Camion Régie",
-        message: "DOUBLE BACKUP CHECKSUM, CONTRÔLE RUSHES ET DÉMONTAGE",
-        phone: "06 55 66 77 88",
-        equipment: "Station RAID OWC, disques SSD de transport, caisses flight-case",
-        notes: "Envoi du rapport de production et sauvegarde cloud.",
-        agentGreeting: "WRAP TERMINÉ ! TOUS LES RUSHES SONT SÉCURISÉS.",
+        location: "Salon / Espace Ouvert",
+        message: "DANSE ET JEUX RYTHMIQUES SANS AUCUN ÉCRAN",
+        phone: "PAPA & MAMAN",
+        equipment: "Maracas en bois, tambourin, musique acoustique entraînante",
+        notes: "Sauter, bouger et extérioriser toute l'énergie accumulée.",
+        agentGreeting: "METS DE LA MUSIQUE DANS TON CORPS ET DANSE DE BONNE HUMEUR !",
+      },
+      {
+        id: "m-7",
+        name: "Dîner Doux & Rangement Heureux",
+        role: "Responsabilité & Harmonie",
+        color: "#16A34A",
+        cardBg: "#F0FDF4",
+        timeSlot: "19:30 — 20:30",
+        startMinute: 1170,
+        endMinute: 1230,
+        location: "Maison & Chambre",
+        message: "JE REMETS MES OUTILS ET JOUETS DANS LEURS BACS",
+        phone: "PAPA & MAMAN",
+        equipment: "Bacs de rangement étiquetés par couleur",
+        notes: "Le plaisir de retrouver son espace net pour demain.",
+        agentGreeting: "CHAQUE JOUET RETROUVE SA MAISON DANS LE CALME.",
+      },
+      {
+        id: "m-8",
+        name: "Nuit des Constellations",
+        role: "Paix Absolue & Rêves Infinis",
+        color: "#1E1B4B",
+        cardBg: "#0E0E16",
+        timeSlot: "20:30 — 08:00",
+        startMinute: 1230,
+        endMinute: 480,
+        location: "Lit Cocon",
+        message: "JE PARS POUR UN MERVEILLEUX VOYAGE DANS LES ÉTOILES",
+        phone: "PAPA & MAMAN",
+        equipment: "Veilleuse constellation, couette moelleuse",
+        notes: "Sommeil profond et régénérant.",
+        agentGreeting: "BONNE NUIT DOUCE. TOUT LE MONDE REPOSE EN PAIX.",
       },
     ],
   },
-  famille: {
-    title: "ROUTINE QUOTIDIENNE DE LA MAISON",
-    subtitle: "Famille & Enfants",
+  weekend: {
+    title: "WEEK-END, CABANE & VACANCES EN LIBERTÉ",
+    subtitle: "Week-end & Plein Air",
     milestones: [
       {
-        id: "r-1",
-        name: "Matin & Petit-Déjeuner",
-        role: "Éveil & Énergie",
-        color: "#F59E0B",
-        cardBg: "#FEFCE8",
-        timeSlot: "07:00 — 08:15",
-        startMinute: 420,
-        endMinute: 495,
-        location: "Cuisine & Entrée",
-        message: "PETIT-DÉJEUNER VITAMINÉ, HABILLAGE ET DÉPART ÉCOLE",
-        phone: "06 00 00 00 00",
-        equipment: "Sacs préparés la veille, gourdes remplies",
-        notes: "Musique douce au réveil.",
-        agentGreeting: "BONJOUR ! TRÈS BELLE JOURNÉE QUI COMMENCE.",
-      },
-      {
-        id: "r-2",
-        name: "Journée d'Apprentissage",
-        role: "École & Découverte",
-        color: "#006494",
-        cardBg: "#F0F9FF",
-        timeSlot: "08:30 — 16:30",
+        id: "w-1",
+        name: "Matin Douceur en Pyjama",
+        role: "Temps Suspendu & Câlin",
+        color: "#FFEDD5",
+        cardBg: "#FFF7ED",
+        timeSlot: "08:30 — 10:00",
         startMinute: 510,
-        endMinute: 990,
-        location: "École & Activités",
-        message: "CONCENTRATION, ATELIERS ET TEMPS DE RÉCRÉATION",
-        phone: "06 00 00 00 00",
-        equipment: "Cartable, trousse, cahier de liaison",
-        notes: "Goûter prévu dans la petite poche.",
-        agentGreeting: "JOURNÉE SCOLAIRE EN COURS. APPRENEZ BIEN !",
+        endMinute: 600,
+        location: "Salon Douillet",
+        message: "TARTINES CHAUDES AU SOLEIL SANS AUCUN HORAIRE STRICT",
+        phone: "FAMILLE",
+        equipment: "Pancakes maison, confiture de fraises, chocolat chaud",
+        notes: "Discuter des envies d'exploration du week-end.",
+        agentGreeting: "C'EST LE WEEK-END ! PRENDS TOUT TON TEMPS EN DOUCEUR.",
       },
       {
-        id: "r-3",
-        name: "Goûter, Parc & Devoirs",
-        role: "Détente & Plein Air",
-        color: "#16A34A",
+        id: "w-2",
+        name: "Cabane Secrète dans les Bois",
+        role: "Imagination & Coopération",
+        color: "#65A30D",
         cardBg: "#F0FDF4",
-        timeSlot: "16:30 — 18:30",
-        startMinute: 990,
-        endMinute: 1110,
-        location: "Parc du quartier & Bureau maison",
-        message: "PAUSE FRUITS, VÉLO EN PLEIN AIR ET LECTURE DU SOIR",
-        phone: "06 00 00 00 00",
-        equipment: "Ballon de foot, goûter maison, livre de contes",
-        notes: "30 minutes de grand air avant les devoirs.",
-        agentGreeting: "C'EST L'HEURE DU GOÛTER ET DE LA DÉTENTE !",
+        timeSlot: "10:00 — 13:00",
+        startMinute: 600,
+        endMinute: 780,
+        location: "Sous-Bois & Clairière",
+        message: "CONSTRUCTION D'UN REFUGE EN BRANCHES ET FEUILLES",
+        phone: "FAMILLE",
+        equipment: "Ficelle, bâtons de bois, mousquetons",
+        notes: "Travail d'équipe et motricité globale.",
+        agentGreeting: "NOTRE CABANE SECRÈTE PREND FORME ! QUEL BEAU TRAVAIL.",
       },
       {
-        id: "r-4",
-        name: "Bain, Dîner & Histoire",
-        role: "Douceur & Nuit Paisible",
-        color: "#9333EA",
+        id: "w-3",
+        name: "Pique-Nique sur l'Herbe",
+        role: "Convivialité & Repas Partagé",
+        color: "#CA8A04",
+        cardBg: "#FEFCE8",
+        timeSlot: "13:00 — 15:00",
+        startMinute: 780,
+        endMinute: 900,
+        location: "Grande Pelouse Ensoleillée",
+        message: "REPAS SUR LA NAPPE, JEU DU CIEL ET RIGOLADES",
+        phone: "FAMILLE",
+        equipment: "Grande nappe à carreaux, fruits frais, jeux de cartes",
+        notes: "Observer les formes des nuages dans le ciel.",
+        agentGreeting: "REGARDE LES NUAGES ET PROFITE DU SOLEIL SUR L'HERBE !",
+      },
+      {
+        id: "w-4",
+        name: "Jeux de Société & Expériences",
+        role: "Stratégie, Logique & Rire",
+        color: "#0EA5E9",
+        cardBg: "#F0F9FF",
+        timeSlot: "15:00 — 18:00",
+        startMinute: 900,
+        endMinute: 1080,
+        location: "Table du Salon",
+        message: "EXPÉRIENCES SCIENTIFIQUES ET DÉFIS COOPÉRATIFS",
+        phone: "FAMILLE",
+        equipment: "Jeu coopératif en bois, kit d'expériences eau & lumière",
+        notes: "Tout le monde joue ensemble pour atteindre l'objectif.",
+        agentGreeting: "BRAVO POUR CETTE BELLE STRATÉGIE D'ÉQUIPE !",
+      },
+      {
+        id: "w-5",
+        name: "Dessin de la Plus Belle Émotion",
+        role: "Expression de Soi & Poésie",
+        color: "#D8B4FE",
         cardBg: "#FAF5FF",
-        timeSlot: "18:30 — 20:30",
-        startMinute: 1110,
-        endMinute: 1230,
-        location: "Chambre & Salle de bain",
-        message: "REPAS CHAUD, HISTOIRE DU SOIR ET ENDORMISSEMENT",
-        phone: "06 00 00 00 00",
-        equipment: "Veilleuse douce, livre illustré préféré",
-        notes: "Lumières tamisées dès 20h00.",
-        agentGreeting: "BONNE NUIT ET FAITES DE TRÈS BEAUX RÊVES !",
+        timeSlot: "18:00 — 19:30",
+        startMinute: 1080,
+        endMinute: 1170,
+        location: "Coin Créatif",
+        message: "JE REPRÉSENTE MON MEILLEUR SOUVENIR EN COULEURS",
+        phone: "FAMILLE",
+        equipment: "Grandes feuilles, aquarelle naturelle et pinceaux ronds",
+        notes: "L'enfant raconte l'histoire cachée dans son dessin.",
+        agentGreeting: "TES COULEURS RACONTENT UNE HISTOIRE MAGNIFIQUE.",
+      },
+      {
+        id: "w-6",
+        name: "Veillée aux Bougies & Étoiles",
+        role: "Douceur Partagée & Récits",
+        color: "#EAB308",
+        cardBg: "#FFF7ED",
+        timeSlot: "19:30 — 21:00",
+        startMinute: 1170,
+        endMinute: 1260,
+        location: "Terrasse ou Salon Tamisé",
+        message: "ÉCOUTE DU CONTE DE LA LUNE ET FEU DE CHEMINÉE",
+        phone: "FAMILLE",
+        equipment: "Bougies LED sécurisées, tisane aux fleurs douce",
+        notes: "Chuchoter et respirer la paix du soir.",
+        agentGreeting: "LA VEILLÉE EST DOUCE ET APAISANTE. FERME DOUCEMENT LES YEUX.",
+      },
+      {
+        id: "w-7",
+        name: "Grand Sommeil Régénérant",
+        role: "Sommeil Profond & Paix",
+        color: "#0F172A",
+        cardBg: "#0B101E",
+        timeSlot: "21:00 — 08:30",
+        startMinute: 1260,
+        endMinute: 510,
+        location: "Chambre Cocon",
+        message: "JE DORS D'UN SOMMEIL PROFOND ET SEREIN JUSQU'AU MATIN",
+        phone: "FAMILLE",
+        equipment: "Lit douillet, veilleuse bleue douce",
+        notes: "Récupération physique et mentale totale.",
+        agentGreeting: "DORS BIEN MON PETIT. LE MONDE ENTIER REPOSE EN PAIX.",
+      },
+    ],
+  },
+  meteo_emotions: {
+    title: "MÉTÉO DU CŒUR & AUTO-RÉGULATION DES ÉMOTIONS",
+    subtitle: "Météo du Cœur",
+    milestones: [
+      {
+        id: "emo-1",
+        name: "Joie du Matin & Sourire",
+        role: "Énergie Positive & Rayonnement",
+        color: "#FACC15",
+        cardBg: "#FEFCE8",
+        timeSlot: "08:00 — 10:00",
+        startMinute: 480,
+        endMinute: 600,
+        location: "Espace Lumière",
+        message: "JE ME SENS HEUREUX, LÉGER ET PLEIN D'ENTHOUSIASME",
+        phone: "CŒUR D'ENFANT",
+        equipment: "Sourire, carnet des fiertés, musique joyeuse",
+        notes: "Quand le soleil brille à l'intérieur de la poitrine.",
+        agentGreeting: "TON CŒUR EST ILLUMINÉ DE SOLEIL ! PARTAGE CETTE JOIE.",
+      },
+      {
+        id: "emo-2",
+        name: "Grosse Colère / Tempête Émotionnelle",
+        role: "Accueillir la Frustration & Décharger",
+        color: "#EF4444",
+        cardBg: "#FEF2F2",
+        timeSlot: "10:00 — 12:00",
+        startMinute: 600,
+        endMinute: 720,
+        location: "Coin Coussin Décharge",
+        message: "J'ACCUEILLE MON ORAGE ET JE SOUFFLE COMME LE VENT",
+        phone: "CŒUR D'ENFANT",
+        equipment: "Coussin de colère, mouchoirs, balle anti-stress",
+        notes: "La colère n'est pas interdite : on apprend à la canaliser.",
+        agentGreeting: "J'ACCUEILLE TA COLÈRE. RESPIRE AVEC MOI, JE NE TE JUGE PAS.",
+      },
+      {
+        id: "emo-3",
+        name: "Câlin Réconfortant & Sas Doux",
+        role: "Réconfort & Dépôt du Chagrin",
+        color: "#FDF2F8",
+        cardBg: "#FDF2F8",
+        timeSlot: "12:00 — 14:00",
+        startMinute: 720,
+        endMinute: 840,
+        location: "Bras Réconfortants & Canapé",
+        message: "UN GROS CÂLIN POUR APPORTER LA DOUCEUR À MON CŒUR",
+        phone: "CŒUR D'ENFANT",
+        equipment: "Couverture lestée, doudou fétiche, câlin chaleureux",
+        notes: "Laisser les larmes couler pour libérer les tensions.",
+        agentGreeting: "TOUT VA BIEN SE PASSER. TU ES PROTÉGÉ ET AIMÉ.",
+      },
+      {
+        id: "emo-4",
+        name: "Bulle Secrète & Respiration Zen",
+        role: "Retour au Calme & Ancrage",
+        color: "#14B8A6",
+        cardBg: "#F0FDFA",
+        timeSlot: "14:00 — 16:00",
+        startMinute: 840,
+        endMinute: 960,
+        location: "Tipi / Cabane Sensorielle",
+        message: "3 GRANDES INSPIRATIONS PROFONDES PAR LE NEZ",
+        phone: "CŒUR D'ENFANT",
+        equipment: "Plume magique pour souffler, bol tibétain doux",
+        notes: "Inspirer 3s, bloquer 3s, souffler 4s.",
+        agentGreeting: "SENS TON CORPS S'APAISER COMME UNE EAU LIMPIDE.",
+      },
+      {
+        id: "emo-5",
+        name: "Ciel Bleu & Légèreté Retrouvée",
+        role: "Clarté Mentale & Confiance",
+        color: "#7DD3FC",
+        cardBg: "#F0F9FF",
+        timeSlot: "16:00 — 18:00",
+        startMinute: 960,
+        endMinute: 1080,
+        location: "Terrasse & Fenêtre Ouverte",
+        message: "LE CIEL EST REVENU CLAIR ET SOURIANT DANS MON CŒUR",
+        phone: "CŒUR D'ENFANT",
+        equipment: "Bulles de savon à souffler dans l'air",
+        notes: "La fierté d'avoir traversé l'émotion difficile.",
+        agentGreeting: "LE SOLEIL BRILLE À NOUVEAU DANS TOUT TON CORPS !",
+      },
+      {
+        id: "emo-6",
+        name: "Gratitude & Récit du Soir",
+        role: "Reconnaissance & Paix",
+        color: "#C084FC",
+        cardBg: "#FAF5FF",
+        timeSlot: "18:00 — 20:00",
+        startMinute: 1080,
+        endMinute: 1200,
+        location: "Coin Méditation Douce",
+        message: "JE DIS MERCI POUR TOUT CE QUE J'AI APPRIS AUJOURD'HUI",
+        phone: "CŒUR D'ENFANT",
+        equipment: "Galet de gratitude à tenir dans la paume",
+        notes: "Nommer une chose dont on est fier aujourd'hui.",
+        agentGreeting: "TU AS ÉTÉ TRÈS COURAGEUX ET MAGNIFIQUE AUJOURD'HUI.",
+      },
+      {
+        id: "emo-7",
+        name: "Sécurité & Doux Sommeil",
+        role: "Cocon d'Amour Inconditionnel",
+        color: "#00171F",
+        cardBg: "#0B101E",
+        timeSlot: "20:00 — 08:00",
+        startMinute: 1200,
+        endMinute: 480,
+        location: "Cocon Protecteur",
+        message: "JE SUIS EN SÉCURITÉ DANS MON LIT, PROTÉGÉ ET CHÉRI",
+        phone: "CŒUR D'ENFANT",
+        equipment: "Veilleuse douce et berceuse harmonique",
+        notes: "Sommeil réparateur sans aucune angoisse.",
+        agentGreeting: "FERME LES YEUX EN TOUTE SÉCURITÉ. DORS PROFONDÉMENT.",
       },
     ],
   },
@@ -410,25 +570,25 @@ export const PRESETS_DATA: Record<string, { title: string; subtitle: string; mil
 
 export function App() {
   const [activePresetKey, setActivePresetKey] = useState(() => {
-    return localStorage.getItem("colorcard_active_preset_key_v9") || "mariage";
+    return localStorage.getItem("colorcard_child_preset_key_v10") || "ecole";
   });
 
   const [eventTitle, setEventTitle] = useState(() => {
-    return localStorage.getItem("colorcard_event_title_v9") || PRESETS_DATA.mariage.title;
+    return localStorage.getItem("colorcard_child_title_v10") || PRESETS_DATA.ecole.title;
   });
 
-  const [milestones, setMilestones] = useState<WeddingMilestone[]>(() => {
+  const [milestones, setMilestones] = useState<ChildRitualMilestone[]>(() => {
     try {
-      const saved = localStorage.getItem("colorcard_wedding_master_v9");
+      const saved = localStorage.getItem("colorcard_child_milestones_v10");
       if (saved) return JSON.parse(saved);
     } catch {
       // fallback
     }
-    return PRESETS_DATA.mariage.milestones;
+    return PRESETS_DATA.ecole.milestones;
   });
 
   const [activeMilestoneId, setActiveMilestoneId] = useState<string>(() => {
-    return milestones[0]?.id || "m-1";
+    return milestones[0]?.id || "e-1";
   });
 
   const [isPlayingTimeline, setIsPlayingTimeline] = useState(false);
@@ -439,15 +599,15 @@ export function App() {
   // Save to localStorage
   useEffect(() => {
     try {
-      localStorage.setItem("colorcard_wedding_master_v9", JSON.stringify(milestones));
-      localStorage.setItem("colorcard_event_title_v9", eventTitle);
-      localStorage.setItem("colorcard_active_preset_key_v9", activePresetKey);
+      localStorage.setItem("colorcard_child_milestones_v10", JSON.stringify(milestones));
+      localStorage.setItem("colorcard_child_title_v10", eventTitle);
+      localStorage.setItem("colorcard_child_preset_key_v10", activePresetKey);
     } catch {
       // silent
     }
   }, [milestones, eventTitle, activePresetKey]);
 
-  // Current active milestone
+  // Current active ritual milestone
   const currentMilestone = useMemo(() => {
     return milestones.find((m) => m.id === activeMilestoneId) || milestones[0];
   }, [milestones, activeMilestoneId]);
@@ -456,7 +616,7 @@ export function App() {
     return milestones.findIndex((m) => m.id === activeMilestoneId);
   }, [milestones, activeMilestoneId]);
 
-  // Load a preset
+  // Load a child preset
   const handleSelectPreset = (key: string) => {
     const preset = PRESETS_DATA[key];
     if (!preset) return;
@@ -469,8 +629,8 @@ export function App() {
     playCardTone(preset.milestones[0].color, "change");
   };
 
-  // Update helper
-  const handleUpdateMilestone = (patch: Partial<WeddingMilestone>) => {
+  // Update ritual helper
+  const handleUpdateMilestone = (patch: Partial<ChildRitualMilestone>) => {
     setMilestones((prev) =>
       prev.map((m) => (m.id === activeMilestoneId ? { ...m, ...patch } : m))
     );
@@ -479,7 +639,7 @@ export function App() {
     }
   };
 
-  // Switch to previous or next milestone
+  // Switch to previous or next ritual
   const handlePrev = () => {
     const prevIdx = (currentIndex - 1 + milestones.length) % milestones.length;
     setActiveMilestoneId(milestones[prevIdx].id);
@@ -518,7 +678,7 @@ export function App() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [currentIndex, milestones]);
 
-  // Timeline simulation playback: moves through milestones every 2.5 seconds
+  // Rhythm simulation playback: moves through milestones every 2.8 seconds
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (isPlayingTimeline) {
@@ -529,29 +689,29 @@ export function App() {
           playCardTone(milestones[nextIdx].color, "step");
           return milestones[nextIdx].id;
         });
-      }, 2500);
+      }, 2800);
     }
     return () => clearInterval(interval);
   }, [isPlayingTimeline, milestones]);
 
-  // Add custom moment
+  // Add custom ritual moment
   const handleAddMoment = () => {
-    const newId = `m-${Date.now()}`;
-    const newMilestone: WeddingMilestone = {
+    const newId = `r-${Date.now()}`;
+    const newMilestone: ChildRitualMilestone = {
       id: newId,
-      name: "Nouvelle Mission",
-      role: "Rôle & Spécialité",
-      color: "#3B82F6",
-      cardBg: "#FBF0DC",
-      timeSlot: "16:00 — 18:00",
-      startMinute: 960,
-      endMinute: 1080,
-      location: "Lieu de la mission",
-      message: "NOUVELLE MISSION PLANIFIÉE",
-      phone: "06 00 00 00 00",
-      equipment: "Équipement autonome",
-      notes: "Consignes de coordination",
-      agentGreeting: "BONJOUR ! JE SUIS L'AGENT DE CE NOUVEAU MOMENT.",
+      name: "Nouveau Rituel",
+      role: "Autonomie & Confiance",
+      color: "#FACC15",
+      cardBg: "#FEFCE8",
+      timeSlot: "17:00 — 17:30",
+      startMinute: 1020,
+      endMinute: 1050,
+      location: "Espace Chambre",
+      message: "MON NOUVEAU RITUEL HEUREUX DU JOUR",
+      phone: "PAPA & MAMAN",
+      equipment: "Mon matériel d'activité",
+      notes: "Rituel personnalisé par l'enfant.",
+      agentGreeting: "BONJOUR ! C'EST L'HEURE DE TON NOUVEAU RITUEL.",
     };
 
     setMilestones((prev) => [...prev, newMilestone]);
@@ -559,10 +719,10 @@ export function App() {
     playCardTone(newMilestone.color, "step");
   };
 
-  // Duplicate current milestone
+  // Duplicate current ritual
   const handleDuplicateCurrent = () => {
-    const dupId = `m-${Date.now()}`;
-    const dup: WeddingMilestone = {
+    const dupId = `r-${Date.now()}`;
+    const dup: ChildRitualMilestone = {
       ...currentMilestone,
       id: dupId,
       name: `${currentMilestone.name} (COPIE)`,
@@ -572,7 +732,7 @@ export function App() {
     playCardTone(currentMilestone.color, "change");
   };
 
-  // Delete current milestone
+  // Delete current ritual
   const handleDeleteCurrent = () => {
     if (milestones.length <= 1) return;
     const remaining = milestones.filter((m) => m.id !== activeMilestoneId);
@@ -581,14 +741,14 @@ export function App() {
     playCardTone("#DC2626", "change");
   };
 
-  // Copy clean 24h timeline text itinerary to clipboard
+  // Export clean 24h Montessori rhythm text to clipboard
   const handleCopyFullItinerary = () => {
     const text = [
-      `DÉROULÉ 24H · ${eventTitle.toUpperCase()}`,
-      `────────────────────────────────────`,
-      ...milestones.map((m, i) => `${i + 1}. [${m.timeSlot}] ${m.name} — ${m.role}\n   Brief: ${m.message}\n   Contact: ${m.phone}`),
-      `────────────────────────────────────`,
-      `ColorCard Studio 24H`,
+      `TOTEM MONTESSORI · RITUEL DE LA JOURNÉE : ${eventTitle.toUpperCase()}`,
+      `───────────────────────────────────────────────────────`,
+      ...milestones.map((m, i) => `${i + 1}. [${m.timeSlot}] ${m.name} (${m.role})\n   Action : "${m.message}"\n   Lieu : ${m.location}`),
+      `───────────────────────────────────────────────────────`,
+      `ColorCard · Totem Temporel & Émotionnel pour Enfants`,
     ].join("\n");
 
     navigator.clipboard?.writeText(text);
@@ -599,12 +759,12 @@ export function App() {
   return (
     <div className="min-h-screen bg-[#070709] text-[#EDEDED] font-sans antialiased flex flex-col justify-between selection:bg-white selection:text-black">
       {/* ========================================================================= */}
-      {/* 1. TOP HEADER BAR (MINIMALIST WITH PRESET SELECTOR)                       */}
+      {/* 1. TOP BAR (MINIMALIST MONTESSORI HEADER)                                  */}
       {/* ========================================================================= */}
       <header className="bg-[#0A0A0E] border-b border-[#161620] px-4 lg:px-6 py-3 flex items-center justify-between select-none">
-        {/* Brand & Preset Dropdown */}
+        {/* Brand & Ritual Preset Switcher */}
         <div className="flex items-center gap-3">
-          <div className="size-7 rounded bg-white text-black flex items-center justify-center shadow-md">
+          <div className="size-7 rounded bg-white text-black flex items-center justify-center shadow-md" title="ColorCard Enfant">
             <StudioLogoIcon size={16} />
           </div>
 
@@ -615,18 +775,18 @@ export function App() {
               onClick={() => setShowPresetMenu(!showPresetMenu)}
               className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#14141E] hover:bg-[#1E1E2C] border border-[#222232] text-[10px] font-black uppercase tracking-wider text-white transition-colors"
             >
-              <span>{PRESETS_DATA[activePresetKey]?.subtitle || "Modèle"}</span>
+              <span>{PRESETS_DATA[activePresetKey]?.subtitle || "Rituels"}</span>
               <span className="text-[9px] opacity-50">▾</span>
             </button>
 
             {/* Presets Popover */}
             {showPresetMenu && (
-              <div className="absolute left-0 top-8 w-60 bg-[#0E0E16] border border-white/20 rounded-xl shadow-2xl py-1.5 z-50 text-left space-y-0.5">
+              <div className="absolute left-0 top-8 w-64 bg-[#0E0E16] border border-white/20 rounded-xl shadow-2xl py-1.5 z-50 text-left space-y-0.5">
                 {[
-                  { key: "mariage", label: "Mariage & Événement", desc: "9 moments · Du matin à la nuit" },
-                  { key: "freelance", label: "Focus Freelance & Créatif", desc: "5 blocs · Deep work & pause" },
-                  { key: "tournage", label: "Tournage & Régie Shooting", desc: "5 étapes · Set, prises & wrap" },
-                  { key: "famille", label: "Routine Quotidienne & Famille", desc: "4 temps · Maison & école" },
+                  { key: "ecole", label: "Jour d'École & Rituels", desc: "11 étapes · Réveil, ateliers & nuit" },
+                  { key: "mercredi", label: "Mercredi Nature & Création", desc: "8 étapes · Grand air, bois & rire" },
+                  { key: "weekend", label: "Week-end & Plein Air", desc: "7 étapes · Cabane, pique-nique & repos" },
+                  { key: "meteo_emotions", label: "Météo du Cœur & Émotions", desc: "7 étapes · Colère, apaisement & joie" },
                 ].map((p) => (
                   <button
                     key={p.key}
@@ -647,19 +807,19 @@ export function App() {
           </div>
         </div>
 
-        {/* Center: Editable Event Title */}
+        {/* Center: Editable Ritual Day Title */}
         <div className="hidden sm:flex items-center gap-2 bg-[#101017] border border-[#1C1C26] rounded-lg px-3.5 py-1 shadow-sm">
           <input
             type="text"
             value={eventTitle}
             onChange={(e) => setEventTitle(e.target.value.toUpperCase())}
-            placeholder="TITRE DE L'ÉVÉNEMENT..."
-            className="text-[10.5px] font-black uppercase tracking-wider text-white bg-transparent border-b border-dashed border-transparent hover:border-white/30 focus:border-white outline-none text-center max-w-[280px]"
+            placeholder="TITRE DU RYTHME DE LA JOURNÉE..."
+            className="text-[10.5px] font-black uppercase tracking-wider text-white bg-transparent border-b border-dashed border-transparent hover:border-white/30 focus:border-white outline-none text-center max-w-[320px]"
           />
           <span className="text-[9px] text-[#707085] font-bold">({milestones.length})</span>
         </div>
 
-        {/* Right Controls: Copy Timeline + Audio */}
+        {/* Right Controls: Copy Ritual + Audio Toggle */}
         <div className="flex items-center gap-2">
           <button
             type="button"
@@ -669,9 +829,9 @@ export function App() {
                 ? "bg-white text-black border-white shadow-sm"
                 : "bg-white/5 hover:bg-white/10 text-white border-white/20 active:scale-95"
             }`}
-            title="Copier le planning complet"
+            title="Copier le rythme complet pour impression ou affichage"
           >
-            {isCopiedItinerary ? "Planning copié !" : "Copier Déroulé"}
+            {isCopiedItinerary ? "Rituel copié !" : "Copier Rituels"}
           </button>
 
           <button
@@ -686,7 +846,7 @@ export function App() {
                 ? "bg-[#12121A] border-[#1E1E28] text-[#606070]"
                 : "bg-white text-black border-white shadow-sm"
             }`}
-            title={isMuted ? "Activer le son" : "Couper le son"}
+            title={isMuted ? "Activer les sons harmoniques" : "Couper le son"}
           >
             {isMuted ? <VolumeX size={13} /> : <Volume2 size={13} />}
           </button>
@@ -694,7 +854,7 @@ export function App() {
       </header>
 
       {/* ========================================================================= */}
-      {/* 2. CENTER LIVING CARD (THE SOLE HERO - SINGLE UNIFIED VIEW)               */}
+      {/* 2. CENTER LIVING CARD (THE MONTESSORI TEMPORAL & EMOTIONAL TOTEM)         */}
       {/* ========================================================================= */}
       <main className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 select-none relative overflow-hidden bg-[#070709]">
         <div className="w-full max-w-[370px] sm:max-w-[390px] flex flex-col items-center">
@@ -721,7 +881,7 @@ export function App() {
                 type="button"
                 onClick={handleDuplicateCurrent}
                 className="hover:text-white transition-colors"
-                title="Dupliquer ce moment"
+                title="Dupliquer ce rituel"
               >
                 Dupliquer
               </button>
@@ -730,9 +890,9 @@ export function App() {
                 type="button"
                 onClick={handleAddMoment}
                 className="hover:text-white transition-colors"
-                title="Ajouter un moment"
+                title="Ajouter un rituel"
               >
-                + Moment
+                + Rituel
               </button>
 
               {milestones.length > 1 && (
@@ -740,7 +900,7 @@ export function App() {
                   type="button"
                   onClick={handleDeleteCurrent}
                   className="hover:text-red-400 transition-colors"
-                  title="Supprimer ce moment"
+                  title="Supprimer ce rituel"
                 >
                   Supprimer
                 </button>
@@ -754,7 +914,7 @@ export function App() {
       {/* 3. MINIMAL CLEAN FOOTER                                                    */}
       {/* ========================================================================= */}
       <footer className="py-2 text-center text-[9px] text-[#454555] font-mono select-none">
-        Naviguez avec les pastilles dans le socle ou avec les touches [←] [→] et [Espace]
+        Naviguez entre les rituels avec les pastilles dans le socle ou [←] [→] et [Espace]
       </footer>
     </div>
   );
