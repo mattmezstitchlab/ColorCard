@@ -355,7 +355,7 @@ export default function App() {
                   <input value={newContextDate} onChange={(e) => setNewContextDate(e.target.value)} placeholder="Date" className="w-full border border-[#303030] bg-[#1a1a1a] px-2 py-2.5 text-[10px] text-white outline-none focus:border-white" />
                   <button onClick={createContext} disabled={!newContextName.trim()} className="border border-white px-4 py-2.5 text-[9px] font-bold uppercase tracking-[0.1em] text-white disabled:opacity-25">Créer</button>
                 </div>
-                  )}
+              )}
 
         {contexts.length > 0 && (
                   <div className="mt-3 flex flex-wrap gap-1.5">
