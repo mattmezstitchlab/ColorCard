@@ -1,22 +1,21 @@
 import React, { useRef, useState, useEffect } from "react";
 import { Eye } from "./Eye";
 import { playCardTone } from "../utils/audioSynth";
-import { speakTotemMessage, stopTotemSpeech } from "../utils/voiceSpeech";
 
 export interface ChildRitualMilestone {
   id: string;
   name: string;
-  role: string;
+  role?: string;
   color: string;
   cardBg?: string;
   timeSlot: string;
-  startMinute: number;
-  endMinute: number;
-  location: string;
-  message: string;
-  phone: string;
-  equipment: string;
-  notes: string;
+  startMinute?: number;
+  endMinute?: number;
+  location?: string;
+  message?: string;
+  phone?: string;
+  equipment?: string;
+  notes?: string;
   agentGreeting?: string;
   spokenAudioText?: string;
 }
@@ -84,53 +83,15 @@ export function EyeCard({
   onNextMilestone,
 }: EyeCardProps) {
   const cardContainerRef = useRef<HTMLDivElement>(null);
-  const [isSpeaking, setIsSpeaking] = useState(false);
   const [forceBlink, setForceBlink] = useState(false);
-  const [gazeOverride, setGazeOverride] = useState<{ x: number; y: number } | null>(null);
   const [hoveredMilestone, setHoveredMilestone] = useState<ChildRitualMilestone | null>(null);
 
   // Micro-blink on ritual change
   useEffect(() => {
     setForceBlink(true);
-    stopTotemSpeech();
-    setIsSpeaking(false);
     const timer = setTimeout(() => setForceBlink(false), 140);
     return () => clearTimeout(timer);
   }, [currentMilestone.id]);
-
-  // Handle spoken voice generation
-  const handleSpeakRitual = () => {
-    if (isSpeaking) {
-      stopTotemSpeech();
-      setIsSpeaking(false);
-      return;
-    }
-
-    const speechText =
-      currentMilestone.spokenAudioText ||
-      currentMilestone.agentGreeting ||
-      `C'est l'heure du rituel ${currentMilestone.name}. ${currentMilestone.message}. Tu es autonome et capable !`;
-
-    playCardTone(currentMilestone.color, "step");
-
-    if (cardContainerRef.current) {
-      const rect = cardContainerRef.current.getBoundingClientRect();
-      setGazeOverride({ x: rect.left + rect.width * 0.5, y: rect.top + rect.height * 0.8 });
-    }
-
-    speakTotemMessage(
-      speechText,
-      () => {
-        setIsSpeaking(true);
-        setForceBlink(true);
-        setTimeout(() => setForceBlink(false), 180);
-      },
-      () => {
-        setIsSpeaking(false);
-        setGazeOverride(null);
-      }
-    );
-  };
 
   return (
     <div
@@ -144,63 +105,31 @@ export function EyeCard({
           monsterBg={currentMilestone.color}
           eyeWhite="#FBF0DC"
           pupilColor="#000000"
-          targetPoint={gazeOverride}
           forceBlink={forceBlink}
         />
 
         {/* ------------------------------------------------------------- */}
-        {/* Bottom Section: Socle (Strictly Fixed 200px Height)          */}
+        {/* Bottom Section: Socle (Strictly Fixed 145px Height)          */}
+        {/* ONLY: Horaire, Titre, et Timeline de pastilles                */}
         {/* ------------------------------------------------------------- */}
         <div
-          className="h-[200px] w-full px-5 py-4 flex flex-col justify-between select-none relative bg-[#FBF0DC] text-black"
+          className="h-[145px] w-full px-5 py-4 flex flex-col justify-between select-none relative bg-[#FBF0DC] text-black"
           data-name="socle-rituel"
         >
-          {/* Header block with Time and Location */}
+          {/* Header block with ONLY Time & Title */}
           <div>
-            <div className="pb-1.5 flex items-center justify-between border-b border-black/10">
-              <div className="text-[24px] sm:text-[26px] font-black uppercase font-mono tracking-tight text-black leading-none">
-                {currentMilestone.timeSlot}
-              </div>
-
-              <div className="text-[9.5px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-black/5 text-black/70">
-                {currentMilestone.location}
-              </div>
+            {/* 1. L'HORAIRE */}
+            <div className="text-[25px] sm:text-[27px] font-black uppercase font-mono tracking-tight text-black leading-none pb-1.5 border-b border-black/10">
+              {currentMilestone.timeSlot}
             </div>
 
-            {/* Ritual Name */}
+            {/* 2. LE TITRE */}
             <div className="mt-2 text-[20px] sm:text-[22px] font-black uppercase leading-tight tracking-[-0.01em] text-black truncate">
               {currentMilestone.name}
             </div>
-
-            {/* Intention / Role */}
-            <div className="mt-0.5 text-[11px] font-bold uppercase tracking-wide text-black/60 truncate">
-              {currentMilestone.role}
-            </div>
           </div>
 
-          {/* Action / Message & Voice Button */}
-          <div className="pt-2 border-t border-black/10 flex items-center justify-between gap-2.5">
-            <div className="text-[12px] font-black uppercase tracking-[0.02em] text-black truncate flex-1">
-              « {currentMilestone.message} »
-            </div>
-
-            {/* Spoken Voice Button */}
-            <button
-              type="button"
-              onClick={handleSpeakRitual}
-              className={`px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-wider shrink-0 flex items-center gap-1.5 transition-transform active:scale-95 shadow-sm ${
-                isSpeaking
-                  ? "bg-amber-400 text-black animate-pulse ring-2 ring-black"
-                  : "bg-black text-white hover:bg-neutral-800"
-              }`}
-              title="Écouter le Totem"
-            >
-              <span>{isSpeaking ? "🔊" : "▶"}</span>
-              <span>{isSpeaking ? "ÉCOUTE..." : "PARLER"}</span>
-            </button>
-          </div>
-
-          {/* Timeline Row (Always Fixed at the Bottom of the Socle) */}
+          {/* 3. TIMELINE DANS LE SOCLE : PASTILLES CHROMATIQUES ÉPURÉES */}
           <div className="pt-2 border-t border-black/10 flex flex-col gap-1 select-none relative">
             {/* Tooltip on hover */}
             {hoveredMilestone && (
