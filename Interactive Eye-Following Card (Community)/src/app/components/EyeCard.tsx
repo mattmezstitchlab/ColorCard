@@ -11,6 +11,8 @@ export interface EyeCardProps {
   price?: number;
   message?: string;
   displayMode?: "ticker" | "alternating" | "static" | "stack";
+  pattern?: string;
+  patternAnimated?: boolean;
 }
 
 function Eyes({ eyeWhite, pupilColor }: { eyeWhite: string; pupilColor: string }) {
@@ -24,7 +26,18 @@ function Eyes({ eyeWhite, pupilColor }: { eyeWhite: string; pupilColor: string }
   );
 }
 
-function Monster({ monsterBg, eyeWhite, pupilColor }: { monsterBg: string; eyeWhite: string; pupilColor: string }) {
+function Monster({ monsterBg, eyeWhite, pupilColor, pattern, patternAnimated }: { monsterBg: string; eyeWhite: string; pupilColor: string; pattern: string; patternAnimated: boolean }) {
+  const patternStyle: React.CSSProperties = pattern === "none" ? {} :
+    pattern === "stripes" ? { backgroundImage: "repeating-linear-gradient(135deg, transparent 0 18px, rgba(0,0,0,.18) 18px 24px)" } :
+    pattern === "checker" ? { backgroundImage: "linear-gradient(45deg, rgba(0,0,0,.18) 25%, transparent 25%, transparent 75%, rgba(0,0,0,.18) 75%), linear-gradient(45deg, rgba(0,0,0,.18) 25%, transparent 25%, transparent 75%, rgba(0,0,0,.18) 75%)", backgroundPosition: "0 0, 14px 14px", backgroundSize: "28px 28px" } :
+    pattern === "dots" ? { backgroundImage: "radial-gradient(rgba(0,0,0,.22) 2px, transparent 2.5px)", backgroundSize: "18px 18px" } :
+    pattern === "grid" ? { backgroundImage: "linear-gradient(rgba(0,0,0,.14) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,.14) 1px, transparent 1px)", backgroundSize: "22px 22px" } :
+    pattern === "waves" ? { backgroundImage: "repeating-radial-gradient(ellipse at 0 100%, transparent 0 12px, rgba(0,0,0,.16) 13px 15px, transparent 16px 28px)" } :
+    pattern === "tiger" ? { backgroundImage: "repeating-linear-gradient(120deg, transparent 0 22px, rgba(0,0,0,.24) 23px 30px, transparent 31px 48px)" } :
+    pattern === "leopard" ? { backgroundImage: "radial-gradient(circle at 20% 30%, rgba(0,0,0,.28) 0 4px, transparent 5px), radial-gradient(circle at 70% 60%, rgba(0,0,0,.22) 0 5px, transparent 6px)", backgroundSize: "44px 44px, 58px 58px" } :
+    pattern === "pixel" ? { backgroundImage: "linear-gradient(90deg, rgba(0,0,0,.15) 50%, transparent 50%), linear-gradient(rgba(0,0,0,.15) 50%, transparent 50%)", backgroundSize: "16px 16px" } : {};
+  return (
+    <div style={{ backgroundColor: monsterBg, ...patternStyle }} className={`relative aspect-square w-full overflow-hidden ${patternAnimated && pattern !== "none" ? "colorcard-pattern-motion" : ""}`} data-name="monster">
   return (
     <div style={{ backgroundColor: monsterBg }} className="relative aspect-square w-full overflow-hidden" data-name="monster">
       <Eyes eyeWhite={eyeWhite} pupilColor={pupilColor} />
@@ -75,11 +88,13 @@ export function EyeCard({
   price = 0,
   message = "",
   displayMode = "ticker",
+  pattern = "none",
+  patternAnimated = false,
 }: EyeCardProps) {
   return (
     <div style={{ backgroundColor: cardBg }} className="relative w-full overflow-hidden">
       <div className="flex flex-col overflow-hidden">
-        <Monster monsterBg={monsterBg} eyeWhite={eyeWhite} pupilColor={pupilColor} />
+        <Monster monsterBg={monsterBg} eyeWhite={eyeWhite} pupilColor={pupilColor} pattern={pattern} patternAnimated={patternAnimated} />
         <Legend hexDisplay={hexDisplay} name={name} label={label} price={price} message={message} displayMode={displayMode} />
       </div>
     </div>
