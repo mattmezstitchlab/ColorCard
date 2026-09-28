@@ -26,7 +26,7 @@ function Eyes({ eyeWhite, pupilColor }: { eyeWhite: string; pupilColor: string }
 
 function Monster({ monsterBg, eyeWhite, pupilColor }: { monsterBg: string; eyeWhite: string; pupilColor: string }) {
   return (
-    <div style={{ backgroundColor: monsterBg }} className="relative h-[150px] w-full overflow-hidden" data-name="monster">
+    <div style={{ backgroundColor: monsterBg }} className="relative aspect-square w-full overflow-hidden" data-name="monster">
       <Eyes eyeWhite={eyeWhite} pupilColor={pupilColor} />
     </div>
   );
