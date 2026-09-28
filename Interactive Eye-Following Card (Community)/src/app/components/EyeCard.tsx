@@ -14,6 +14,10 @@ export interface EyeCardProps {
   displayMode?: "ticker" | "alternating" | "static" | "stack";
   pattern?: string;
   patternAnimated?: boolean;
+  patternColor?: string;
+  patternScale?: number;
+  patternOpacity?: number;
+  patternRotation?: number;
 }
 
 function Eyes({ eyeWhite, pupilColor }: { eyeWhite: string; pupilColor: string }) {
@@ -27,7 +31,7 @@ function Eyes({ eyeWhite, pupilColor }: { eyeWhite: string; pupilColor: string }
   );
 }
 
-function Monster({ monsterBg, eyeWhite, pupilColor, pattern, patternAnimated }: { monsterBg: string; eyeWhite: string; pupilColor: string; pattern: string; patternAnimated: boolean }) {
+function Monster({ monsterBg, eyeWhite, pupilColor, pattern, patternAnimated, patternColor, patternScale, patternOpacity, patternRotation }: { monsterBg: string; eyeWhite: string; pupilColor: string; pattern: string; patternAnimated: boolean; patternColor: string; patternScale: number; patternOpacity: number; patternRotation: number }) {
   const patternStyles: Record<string, CSSProperties> = {
     none: {},
     stripes: { backgroundImage: "repeating-linear-gradient(135deg, transparent 0 18px, rgba(0,0,0,.18) 18px 24px)" },
@@ -45,7 +49,12 @@ function Monster({ monsterBg, eyeWhite, pupilColor, pattern, patternAnimated }: 
     pixel: { backgroundImage: "linear-gradient(90deg, rgba(0,0,0,.15) 50%, transparent 50%), linear-gradient(rgba(0,0,0,.15) 50%, transparent 50%)", backgroundSize: "16px 16px" },
     prism: { backgroundImage: "repeating-conic-gradient(from 15deg, rgba(0,0,0,.13) 0 10deg, transparent 10deg 25deg)" },
   };
-  const patternStyle = patternStyles[pattern] ?? {};
+  const hex = patternColor.replace("#","");
+  const r = parseInt(hex.slice(0,2),16) || 0, g = parseInt(hex.slice(2,4),16) || 0, b = parseInt(hex.slice(4,6),16) || 0;
+  const alpha = Math.max(0.05, Math.min(0.6, patternOpacity / 100));
+  const rgba = `rgba(${r},${g},${b},${alpha})`;
+  const base = patternStyles[pattern] ?? {};
+  const patternStyle: CSSProperties = { ...base, filter: "none", ["--cc-pattern-color" as string]: rgba, ["--cc-pattern-size" as string]: `${patternScale}px`, ["--cc-pattern-rotation" as string]: `${patternRotation}deg` };
   return (
     <div
       style={{ backgroundColor: monsterBg, ...patternStyle }}
