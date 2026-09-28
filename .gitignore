@@ -2,3 +2,6 @@ node_modules
 dist
 .DS_Store
 *.log
+
+# Binaires WASM MediaPipe copiés depuis node_modules par scripts/copy-mediapipe-assets.mjs
+Interactive Eye-Following Card (Community)/public/mediapipe/
