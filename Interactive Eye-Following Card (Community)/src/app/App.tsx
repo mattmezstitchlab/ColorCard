@@ -278,7 +278,7 @@ export default function App() {
                 eyeWhite="#FBF0DC"
                 pupilColor="#000"
                 hexDisplay={(activeCard?.category ?? previewCategory).toUpperCase()}
-                name={activeCard?.name ?? name || "Ma carte"}
+                name={activeCard?.name ?? (name || "Ma carte")}
                 label={activeCard ? [activeCard.role, activeCard.city].filter(Boolean).join(" · ") : [role || "Choisir un rôle", city].filter(Boolean).join(" · ")}
                 message={visibleMessage || "Écrivez quelque chose…"}
                 displayMode={visibleMode}
@@ -469,6 +469,7 @@ export default function App() {
               )}
             </div>
           ) : (
+            <>
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <div className="text-[9px] uppercase tracking-[0.2em] text-[#666]">Votre registre</div>
@@ -505,6 +506,8 @@ export default function App() {
                 </button>
               ))}
             </div>
+          )}
+            </>
           )}
         </section>
 
