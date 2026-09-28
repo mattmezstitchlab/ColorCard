@@ -24,34 +24,15 @@ function Eyes({ eyeWhite, pupilColor }: { eyeWhite: string; pupilColor: string }
   );
 }
 
-function Monster({
-  monsterBg,
-  eyeWhite,
-  pupilColor,
-}: {
-  monsterBg: string;
-  eyeWhite: string;
-  pupilColor: string;
-}) {
+function Monster({ monsterBg, eyeWhite, pupilColor }: { monsterBg: string; eyeWhite: string; pupilColor: string }) {
   return (
-    <div
-      style={{ backgroundColor: monsterBg }}
-      className="relative h-[150px] w-full overflow-hidden"
-      data-name="monster"
-    >
+    <div style={{ backgroundColor: monsterBg }} className="relative h-[150px] w-full overflow-hidden" data-name="monster">
       <Eyes eyeWhite={eyeWhite} pupilColor={pupilColor} />
     </div>
   );
 }
 
-function Legend({
-  hexDisplay,
-  name,
-  label,
-  price,
-  message,
-  displayMode,
-}: {
+function Legend({ hexDisplay, name, label, price, message, displayMode }: {
   hexDisplay: string;
   name: string;
   label: string;
@@ -67,29 +48,17 @@ function Legend({
         <div className="colorcard-marquee inline-block pr-8">{text}</div>
       </div>
     ) :
-    displayMode === "alternating" ? (
-      <span className="animate-pulse">{text}</span>
-    ) :
-    displayMode === "stack" ? (
-      <span className="line-clamp-2">{text}</span>
-    ) : <span>{text}</span>;
+    displayMode === "alternating" ? <span className="animate-pulse">{text}</span> :
+    displayMode === "stack" ? <span className="line-clamp-2">{text}</span> :
+    <span>{text}</span>;
 
   return (
-  return (
     <div className="w-full px-4 py-3" data-name="legend">
-      <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-black/55">
-        {hexDisplay}
-      </div>
-      <div className="mt-0.5 truncate text-[16px] font-bold leading-tight text-black">
-        {name}
-      </div>
+      <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-black/55">{hexDisplay}</div>
+      <div className="mt-0.5 truncate text-[16px] font-bold leading-tight text-black">{name}</div>
       <div className="mt-1 flex items-center justify-between gap-3 text-[10px] text-black/65">
         <span className="min-w-0 flex-1 overflow-hidden">{content}</span>
-        {price > 0 && <span className="shrink-0 font-semibold">{new Intl.NumberFormat("fr-FR", {
-          style: "currency",
-          currency: "EUR",
-          maximumFractionDigits: 0,
-        }).format(price)}</span>}
+        {price > 0 && <span className="shrink-0 font-semibold">{new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(price)}</span>}
       </div>
     </div>
   );
