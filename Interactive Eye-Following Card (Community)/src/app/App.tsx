@@ -31,7 +31,12 @@ interface ColorCardRecord {
   message: string;
   displayMode: DisplayMode;
   assignments: CardAssignment[];
+  pattern: string;
+  patternAnimated: boolean;
 }
+
+const PATTERNS = ["none", "stripes", "checker", "dots", "grid", "waves", "tiger", "leopard", "pixel"] as const;
+const PATTERN_LABELS: Record<string, string> = { none: "Uni", stripes: "Rayures", checker: "Damier", dots: "Points", grid: "Grille", waves: "Ondes", tiger: "Tigre", leopard: "Léopard", pixel: "Pixel" };
 
 const PALETTE = [
   "#E83E8C", "#2D6CDF", "#2F9E44", "#8B5CF6", "#F08C00",
@@ -87,6 +92,9 @@ export default function App() {
   const [assignmentLocation, setAssignmentLocation] = useState("");
   const [viewMode, setViewMode] = useState<"registry" | "timeline">("registry");
   const [formStep, setFormStep] = useState(1);
+  const [customColor, setCustomColor] = useState("#2D6CDF");
+  const [pattern, setPattern] = useState<string>("none");
+  const [patternAnimated, setPatternAnimated] = useState(false);
   const [filter, setFilter] = useState("Toutes");
   const [search, setSearch] = useState("");
   const [newContextName, setNewContextName] = useState("");
@@ -145,6 +153,9 @@ export default function App() {
     setAssignmentTime("");
     setAssignmentLocation("");
     setFormStep(1);
+    setCustomColor("#2D6CDF");
+    setPattern("none");
+    setPatternAnimated(false);
   };
 
   const createContext = () => {
@@ -175,7 +186,9 @@ export default function App() {
       name: cleanName,
       role: cleanRole,
       category,
-      color: colorFor(category),
+      color: customColor,
+      pattern,
+      patternAnimated,
       city: city.trim(),
       details: details.trim(),
       message: message.trim(),
@@ -237,6 +250,9 @@ export default function App() {
     setDetails(card.details);
     setMessage(card.message);
     setDisplayMode(card.displayMode);
+    setCustomColor(card.color);
+    setPattern(card.pattern ?? "none");
+    setPatternAnimated(card.patternAnimated ?? false);
     const firstAssignment = card.assignments[0];
     setSelectedContextId(firstAssignment?.contextId ?? "");
     setAssignmentTime(firstAssignment?.time ?? "");
@@ -251,6 +267,8 @@ export default function App() {
           100% { transform: translateX(-100%); }
         }
         .colorcard-marquee { animation: colorcard-marquee 9s linear infinite; }
+        @keyframes colorcard-pattern-motion { 0% { background-position: 0 0; } 100% { background-position: 80px 60px; } }
+        .colorcard-pattern-motion { animation: colorcard-pattern-motion 10s linear infinite; }
       `}</style>
 
       <header className="flex items-center justify-between border-b border-[#252525] px-6 py-4">
@@ -276,7 +294,7 @@ export default function App() {
           <div className="mx-auto w-full max-w-[430px]">
             <div className="relative">
               <EyeCard
-                monsterBg={activeCard?.color ?? previewColor}
+                monsterBg={activeCard?.color ?? customColor ?? previewColor}
                 cardBg="#FBF0DC"
                 eyeWhite="#FBF0DC"
                 pupilColor="#000"
@@ -285,6 +303,8 @@ export default function App() {
                 label={activeCard ? [activeCard.role, activeCard.city].filter(Boolean).join(" · ") : [role || "Ajouter un rôle", city].filter(Boolean).join(" · ")}
                 message={visibleMessage || "Écrivez quelque chose…"}
                 displayMode={visibleMode}
+                pattern={activeCard?.pattern ?? pattern}
+                patternAnimated={activeCard?.patternAnimated ?? patternAnimated}
               />
               {activeCard && (
                 <button onClick={() => deleteCard(activeCard.id)} className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center bg-black/75 text-white hover:bg-black" aria-label="Supprimer la carte">
@@ -423,6 +443,28 @@ export default function App() {
                         <label className="block">
                           <span className="mb-1 block text-[8px] uppercase tracking-[0.14em] text-[#666]">Où ?</span>
                           <input value={assignmentLocation} onChange={(e) => setAssignmentLocation(e.target.value)} placeholder="Lieu, adresse, salle…" className="w-full border border-[#303030] bg-[#1a1a1a] px-3 py-3 text-[11px] text-white outline-none focus:border-white" />
+                        </label>
+                      </div>
+
+                      <div className="mt-5 border-t border-[#242424] pt-5">
+                        <div className="mb-3 text-[8px] uppercase tracking-[0.14em] text-[#666]">Apparence de la carte</div>
+                        <div className="grid gap-4 sm:grid-cols-[auto_1fr]">
+                          <label className="flex items-center gap-3">
+                            <span className="text-[8px] uppercase tracking-[0.12em] text-[#666]">Couleur</span>
+                            <input type="color" value={customColor} onChange={(e) => { setCustomColor(e.target.value); updateActive({ color: e.target.value }); }} className="h-10 w-16 cursor-pointer border border-[#303030] bg-transparent p-0.5" />
+                          </label>
+                          <div>
+                            <div className="mb-2 text-[8px] uppercase tracking-[0.12em] text-[#666]">Motif</div>
+                            <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-5">
+                              {PATTERNS.map((item) => (
+                                <button key={item} onClick={() => { setPattern(item); updateActive({ pattern: item }); }} className="border px-2 py-2.5 text-[8px] font-semibold uppercase tracking-[0.06em]" style={{ borderColor: pattern === item ? "#fff" : "#303030", color: pattern === item ? "#fff" : "#666" }}>{PATTERN_LABELS[item]}</button>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                        <label className="mt-4 flex items-center gap-2 text-[8px] uppercase tracking-[0.12em] text-[#777]">
+                          <input type="checkbox" checked={patternAnimated} onChange={(e) => { setPatternAnimated(e.target.checked); updateActive({ patternAnimated: e.target.checked }); }} />
+                          Motif animé
                         </label>
                       </div>
 
