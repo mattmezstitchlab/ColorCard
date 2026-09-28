@@ -68,12 +68,12 @@ export function Eye({
   return (
     <div
       ref={eyeRef}
-      className={`relative shrink-0 size-[92px] rounded-full overflow-hidden ${className}`}
+      className={`relative shrink-0 size-[124px] rounded-full overflow-hidden ${className}`}
       style={{ backgroundColor: eyeColor }}
       data-name="eye"
     >
       <div
-        className="absolute rounded-full size-[34px]"
+        className="absolute rounded-full size-[46px]"
         style={{
           backgroundColor: pupilColor,
           top: "50%",
