@@ -35,8 +35,12 @@ interface ColorCardRecord {
   patternAnimated: boolean;
 }
 
-const PATTERNS = ["none", "stripes", "checker", "dots", "grid", "waves", "tiger", "leopard", "pixel"] as const;
-const PATTERN_LABELS: Record<string, string> = { none: "Uni", stripes: "Rayures", checker: "Damier", dots: "Points", grid: "Grille", waves: "Ondes", tiger: "Tigre", leopard: "Léopard", pixel: "Pixel" };
+const PATTERNS = ["none", "stripes", "checker", "dots", "grid", "waves", "tiger", "leopard", "zebra", "scales", "bubbles", "botanical", "diagonal", "pixel", "prism"] as const;
+const PATTERN_LABELS: Record<string, string> = {
+  none: "Uni", stripes: "Rayures", checker: "Damier", dots: "Points", grid: "Grille", waves: "Ondes",
+  tiger: "Tigre", leopard: "Léopard", zebra: "Zèbre", scales: "Écailles", bubbles: "Bulles", botanical: "Botanique",
+  diagonal: "Diagonale", pixel: "Pixel", prism: "Prisme"
+};
 
 const PALETTE = [
   "#E83E8C", "#2D6CDF", "#2F9E44", "#8B5CF6", "#F08C00",
@@ -582,7 +586,7 @@ export default function App() {
             <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {filteredCards.map((card) => (
                 <button key={card.id} onClick={() => selectCard(card)} className="group relative text-left transition-transform hover:-translate-y-1">
-                  <EyeCard monsterBg={card.color} cardBg="#FBF0DC" eyeWhite="#FBF0DC" pupilColor="#000" hexDisplay={card.category.toUpperCase()} name={card.name} label={[card.role, card.city].filter(Boolean).join(" · ")} message={card.message || "Ajouter un message…"} displayMode={card.displayMode} />
+                  <EyeCard monsterBg={card.color} cardBg="#FBF0DC" eyeWhite="#FBF0DC" pupilColor="#000" hexDisplay={card.category.toUpperCase()} name={card.name} label={[card.role, card.city].filter(Boolean).join(" · ")} message={card.message || "Ajouter un message…"} displayMode={card.displayMode} pattern={card.pattern ?? "none"} patternAnimated={card.patternAnimated ?? false} />
                   <div className="border-t border-black/10 bg-[#FBF0DC] px-4 pb-3 text-[8px] uppercase tracking-[0.08em] text-black/45">
                     <div className="flex items-center gap-1"><Link2 size={9} /> {card.assignments.length} contexte{card.assignments.length !== 1 ? "s" : ""}</div>
                     <div className="mt-1 truncate">{card.details || "Aucune indication supplémentaire"}</div>
