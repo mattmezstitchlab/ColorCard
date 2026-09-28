@@ -28,6 +28,9 @@ interface MonsterProps {
   pupilColor?: string;
   targetPoint?: { x: number; y: number } | null;
   forceBlink?: boolean;
+  forceLeftBlink?: boolean;
+  forceRightBlink?: boolean;
+  gestureBadge?: string | null;
 }
 
 function Monster({
@@ -36,6 +39,9 @@ function Monster({
   pupilColor = "#000000",
   targetPoint = null,
   forceBlink = false,
+  forceLeftBlink = false,
+  forceRightBlink = false,
+  gestureBadge = null,
 }: MonsterProps) {
   return (
     <div
@@ -49,16 +55,25 @@ function Monster({
           eyeWhite={eyeWhite}
           pupilColor={pupilColor}
           targetPoint={targetPoint}
-          forceBlink={forceBlink}
+          forceBlink={forceBlink || forceLeftBlink}
+          forceEyeClosed={forceLeftBlink}
         />
         <Eye
           eyeWhite={eyeWhite}
           pupilColor={pupilColor}
           targetPoint={targetPoint}
-          forceBlink={forceBlink}
+          forceBlink={forceBlink || forceRightBlink}
+          forceEyeClosed={forceRightBlink}
           isRightEye={true}
         />
       </div>
+
+      {/* Gentle Gesture Feedback Pill on the Face */}
+      {gestureBadge && (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/80 backdrop-blur-md text-white text-[9.5px] font-black uppercase tracking-wider px-3.5 py-1 rounded-full shadow-xl border border-white/20 animate-in fade-in zoom-in duration-150 z-20 pointer-events-none whitespace-nowrap">
+          {gestureBadge}
+        </div>
+      )}
     </div>
   );
 }
@@ -71,6 +86,10 @@ export interface EyeCardProps {
   onTogglePlayTimeline?: () => void;
   onPrevMilestone?: () => void;
   onNextMilestone?: () => void;
+  gazeTargetPoint?: { x: number; y: number } | null;
+  forceLeftBlink?: boolean;
+  forceRightBlink?: boolean;
+  gestureBadge?: string | null;
 }
 
 export function EyeCard({
@@ -81,6 +100,10 @@ export function EyeCard({
   onTogglePlayTimeline,
   onPrevMilestone,
   onNextMilestone,
+  gazeTargetPoint = null,
+  forceLeftBlink = false,
+  forceRightBlink = false,
+  gestureBadge = null,
 }: EyeCardProps) {
   const cardContainerRef = useRef<HTMLDivElement>(null);
   const [forceBlink, setForceBlink] = useState(false);
@@ -105,7 +128,11 @@ export function EyeCard({
           monsterBg={currentMilestone.color}
           eyeWhite="#FBF0DC"
           pupilColor="#000000"
+          targetPoint={gazeTargetPoint}
           forceBlink={forceBlink}
+          forceLeftBlink={forceLeftBlink}
+          forceRightBlink={forceRightBlink}
+          gestureBadge={gestureBadge}
         />
 
         {/* ------------------------------------------------------------- */}
