@@ -319,9 +319,12 @@ export default function App() {
                   </select>
                 </div>
 
-                <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_auto]">
-                  <input value={newContextName} onChange={(e) => setNewContextName(e.target.value)} placeholder="Créer un événement ou groupe…" className="w-full border border-[#303030] bg-[#1a1a1a] px-3 py-2.5 text-[10px] text-white outline-none focus:border-white" />
-                  <button onClick={createContext} disabled={!newContextName.trim()} className="border border-white px-4 py-2.5 text-[9px] font-bold uppercase tracking-[0.1em] text-white disabled:opacity-25">Créer le contexte</button>
+                <div className="mt-3 grid gap-2 sm:grid-cols-[1.3fr_.8fr_.9fr_.8fr_auto]">
+                  <input value={newContextName} onChange={(e) => setNewContextName(e.target.value)} placeholder="Événement, groupe, projet…" className="w-full border border-[#303030] bg-[#1a1a1a] px-3 py-2.5 text-[10px] text-white outline-none focus:border-white" />
+                  <input value={newContextKind} onChange={(e) => setNewContextKind(e.target.value)} placeholder="Type" className="w-full border border-[#303030] bg-[#1a1a1a] px-2 py-2.5 text-[10px] text-white outline-none focus:border-white" />
+                  <input value={newContextCity} onChange={(e) => setNewContextCity(e.target.value)} placeholder="Ville" className="w-full border border-[#303030] bg-[#1a1a1a] px-2 py-2.5 text-[10px] text-white outline-none focus:border-white" />
+                  <input value={newContextDate} onChange={(e) => setNewContextDate(e.target.value)} placeholder="Date" className="w-full border border-[#303030] bg-[#1a1a1a] px-2 py-2.5 text-[10px] text-white outline-none focus:border-white" />
+                  <button onClick={createContext} disabled={!newContextName.trim()} className="border border-white px-4 py-2.5 text-[9px] font-bold uppercase tracking-[0.1em] text-white disabled:opacity-25">Créer</button>
                 </div>
                 {contexts.length > 0 && (
                   <div className="mt-3 flex flex-wrap gap-1.5">
@@ -330,13 +333,6 @@ export default function App() {
                         {context.name}
                       </button>
                     ))}
-                  </div>
-                )}
-                {selectedContext && (
-                  <div className="mt-3 grid grid-cols-3 gap-2">
-                    <input value={newContextKind} onChange={(e) => setNewContextKind(e.target.value)} placeholder="Type" className="border border-[#303030] bg-[#1a1a1a] px-2 py-2 text-[9px] text-white outline-none" />
-                    <input value={newContextCity} onChange={(e) => setNewContextCity(e.target.value)} placeholder="Ville" className="border border-[#303030] bg-[#1a1a1a] px-2 py-2 text-[9px] text-white outline-none" />
-                    <input value={newContextDate} onChange={(e) => setNewContextDate(e.target.value)} placeholder="Date" className="border border-[#303030] bg-[#1a1a1a] px-2 py-2 text-[9px] text-white outline-none" />
                   </div>
                 )}
               </div>
