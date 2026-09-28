@@ -53,10 +53,10 @@ function Legend({ hexDisplay, name, label, price, message, displayMode }: {
     <span>{text}</span>;
 
   return (
-    <div className="w-full px-4 py-3" data-name="legend">
-      <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-black/55">{hexDisplay}</div>
-      <div className="mt-0.5 truncate text-[16px] font-bold leading-tight text-black">{name}</div>
-      <div className="mt-1 flex items-center justify-between gap-3 text-[10px] text-black/65">
+    <div className="min-h-[180px] w-full px-5 py-6" data-name="legend">
+      <div className="text-[12px] font-semibold uppercase tracking-[0.14em] text-black/55">{hexDisplay}</div>
+      <div className="mt-1 truncate text-[22px] font-bold uppercase leading-tight tracking-[0.01em] text-black">{name}</div>
+      <div className="mt-3 flex items-center justify-between gap-3 text-[13px] font-semibold uppercase leading-snug tracking-[0.03em] text-black/70">
         <span className="min-w-0 flex-1 overflow-hidden">{content}</span>
         {price > 0 && <span className="shrink-0 font-semibold">{new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(price)}</span>}
       </div>
