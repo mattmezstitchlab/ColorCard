@@ -1,136 +1,248 @@
-import type { CSSProperties } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { Eye } from "./Eye";
+import { playCardTone } from "../utils/audioSynth";
 
-export interface EyeCardProps {
-  monsterBg?: string;
+export interface ChildRitualMilestone {
+  id: string;
+  name: string;
+  role?: string;
+  color: string;
   cardBg?: string;
+  timeSlot: string;
+  startMinute?: number;
+  endMinute?: number;
+  location?: string;
+  message?: string;
+  phone?: string;
+  equipment?: string;
+  notes?: string;
+  agentGreeting?: string;
+  spokenAudioText?: string;
+}
+
+export type WeddingMilestone = ChildRitualMilestone;
+
+interface MonsterProps {
+  monsterBg?: string;
   eyeWhite?: string;
   pupilColor?: string;
-  hexDisplay?: string;
-  name?: string;
-  label?: string;
-  price?: number;
-  message?: string;
-  displayMode?: "ticker" | "alternating" | "static" | "stack";
-  pattern?: string;
-  patternAnimated?: boolean;
-  patternColor?: string;
-  patternScale?: number;
-  patternOpacity?: number;
-  patternRotation?: number;
+  targetPoint?: { x: number; y: number } | null;
+  forceBlink?: boolean;
+  forceLeftBlink?: boolean;
+  forceRightBlink?: boolean;
+  gestureBadge?: string | null;
 }
 
-function Eyes({ eyeWhite, pupilColor }: { eyeWhite: string; pupilColor: string }) {
-  return (
-    <div className="absolute inset-0 flex items-center justify-center" data-name="eyes">
-      <div className="flex items-center justify-center gap-1">
-        <Eye isRightEye={false} eyeColor={eyeWhite} pupilColor={pupilColor} />
-        <Eye isRightEye={true} eyeColor={eyeWhite} pupilColor={pupilColor} />
-      </div>
-    </div>
-  );
-}
-
-function Monster({ monsterBg, eyeWhite, pupilColor, pattern, patternAnimated, patternColor, patternScale, patternOpacity, patternRotation }: { monsterBg: string; eyeWhite: string; pupilColor: string; pattern: string; patternAnimated: boolean; patternColor: string; patternScale: number; patternOpacity: number; patternRotation: number }) {
-  const patternStyles: Record<string, CSSProperties> = {
-    none: {},
-    stripes: { backgroundImage: "repeating-linear-gradient(var(--cc-pattern-rotation), transparent 0 18px, var(--cc-pattern-color) 18px 24px)" },
-    checker: { backgroundImage: "linear-gradient(45deg, var(--cc-pattern-color) 25%, transparent 25%, transparent 75%, var(--cc-pattern-color) 75%), linear-gradient(45deg, var(--cc-pattern-color) 25%, transparent 25%, transparent 75%, var(--cc-pattern-color) 75%)", backgroundPosition: "0 0, 14px 14px", backgroundSize: "28px 28px" },
-    dots: { backgroundImage: "radial-gradient(var(--cc-pattern-color) 2px, transparent 2.5px)", backgroundSize: "18px 18px" },
-    grid: { backgroundImage: "linear-gradient(var(--cc-pattern-color) 1px, transparent 1px), linear-gradient(90deg, var(--cc-pattern-color) 1px, transparent 1px)", backgroundSize: "22px 22px" },
-    waves: { backgroundImage: "repeating-radial-gradient(ellipse at 0 100%, transparent 0 12px, var(--cc-pattern-color) 13px 15px, transparent 16px 28px)" },
-    tiger: { backgroundImage: "repeating-linear-gradient(var(--cc-pattern-rotation), transparent 0 22px, var(--cc-pattern-color) 23px 30px, transparent 31px 48px)" },
-    leopard: { backgroundImage: "radial-gradient(circle at 20% 30%, var(--cc-pattern-color) 0 4px, transparent 5px), radial-gradient(circle at 70% 60%, var(--cc-pattern-color) 0 5px, transparent 6px)", backgroundSize: "44px 44px, 58px 58px" },
-    zebra: { backgroundImage: "repeating-linear-gradient(var(--cc-pattern-rotation), transparent 0 11px, rgba(0,0,0,.25) 12px 18px, transparent 19px 30px)" },
-    scales: { backgroundImage: "radial-gradient(ellipse at 50% 100%, transparent 0 9px, var(--cc-pattern-color) 10px 12px, transparent 13px)", backgroundSize: "24px 18px" },
-    bubbles: { backgroundImage: "radial-gradient(circle, var(--cc-pattern-color) 0 3px, transparent 4px), radial-gradient(circle, rgba(0,0,0,.12) 0 5px, transparent 6px)", backgroundSize: "30px 30px, 47px 47px", backgroundPosition: "0 0, 15px 12px" },
-    botanical: { backgroundImage: "radial-gradient(ellipse 9px 18px at 25% 25%, var(--cc-pattern-color) 0 45%, transparent 50%), radial-gradient(ellipse 9px 18px at 75% 75%, var(--cc-pattern-color) 0 45%, transparent 50%)", backgroundSize: "44px 44px" },
-    diagonal: { backgroundImage: "repeating-linear-gradient(var(--cc-pattern-rotation), transparent 0 8px, var(--cc-pattern-color) 8px 10px, transparent 10px 22px)" },
-    pixel: { backgroundImage: "linear-gradient(90deg, var(--cc-pattern-color) 50%, transparent 50%), linear-gradient(var(--cc-pattern-color) 50%, transparent 50%)", backgroundSize: "16px 16px" },
-    prism: { backgroundImage: "repeating-conic-gradient(from 15deg, var(--cc-pattern-color) 0 10deg, transparent 10deg 25deg)" },
-  };
-  const hex = patternColor.replace("#","");
-  const r = parseInt(hex.slice(0,2),16) || 0, g = parseInt(hex.slice(2,4),16) || 0, b = parseInt(hex.slice(4,6),16) || 0;
-  const alpha = Math.max(0.05, Math.min(0.6, patternOpacity / 100));
-  const rgba = `rgba(${r},${g},${b},${alpha})`;
-  const base = patternStyles[pattern] ?? {};
-  const patternStyle: CSSProperties = { ...base, backgroundSize: `${patternScale}px ${patternScale}px`, ["--cc-pattern-color" as string]: rgba, ["--cc-pattern-rotation" as string]: `${patternRotation}deg` };
+function Monster({
+  monsterBg = "#006494",
+  eyeWhite = "#FBF0DC",
+  pupilColor = "#000000",
+  targetPoint = null,
+  forceBlink = false,
+  forceLeftBlink = false,
+  forceRightBlink = false,
+  gestureBadge = null,
+}: MonsterProps) {
   return (
     <div
-      style={{ backgroundColor: monsterBg, ...patternStyle }}
-      className={`relative aspect-square w-full overflow-hidden ${patternAnimated && pattern !== "none" ? "colorcard-pattern-motion" : ""}`}
-      data-name="monster"
+      style={{ backgroundColor: monsterBg }}
+      className="relative aspect-square w-full overflow-hidden select-none transition-colors duration-300 ease-out flex items-center justify-center"
+      data-name="totem-face"
     >
-      <Eyes eyeWhite={eyeWhite} pupilColor={pupilColor} />
+      {/* THE EXPRESSIVE INTERACTIVE EYES (PURE AND UNOBSTRUCTED) */}
+      <div className="flex items-center justify-center gap-7 sm:gap-9 pointer-events-none z-10">
+        <Eye
+          eyeWhite={eyeWhite}
+          pupilColor={pupilColor}
+          targetPoint={targetPoint}
+          forceBlink={forceBlink || forceLeftBlink}
+          forceEyeClosed={forceLeftBlink}
+        />
+        <Eye
+          eyeWhite={eyeWhite}
+          pupilColor={pupilColor}
+          targetPoint={targetPoint}
+          forceBlink={forceBlink || forceRightBlink}
+          forceEyeClosed={forceRightBlink}
+          isRightEye={true}
+        />
+      </div>
+
+      {/* Gentle Gesture Feedback Pill on the Face */}
+      {gestureBadge && (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/80 backdrop-blur-md text-white text-[9.5px] font-black uppercase tracking-wider px-3.5 py-1 rounded-full shadow-xl border border-white/20 animate-in fade-in zoom-in duration-150 z-20 pointer-events-none whitespace-nowrap">
+          {gestureBadge}
+        </div>
+      )}
     </div>
   );
 }
-function Legend({ hexDisplay, name, label, price, message, displayMode }: {
-  hexDisplay: string;
-  name: string;
-  label: string;
-  price: number;
-  message: string;
-  displayMode: "ticker" | "alternating" | "static" | "stack";
-}) {
-  const text = message || label;
-  const content =
-    displayMode === "ticker" ? (
-      <div className="overflow-hidden whitespace-nowrap">
-        <div className="colorcard-marquee inline-block min-w-full pr-8">{text}</div>
-        <div className="colorcard-marquee inline-block pr-8">{text}</div>
-      </div>
-    ) :
-    displayMode === "alternating" ? <span className="animate-pulse">{text}</span> :
-    displayMode === "stack" ? <span className="line-clamp-2">{text}</span> :
-    <span>{text}</span>;
 
-  return (
-    <div className="min-h-[180px] w-full px-5 py-6" data-name="legend">
-      <div className="text-[16px] font-semibold uppercase tracking-[0.14em] text-black/55">{hexDisplay}</div>
-      <div className="mt-1 truncate text-[30px] font-bold uppercase leading-tight tracking-[0.01em] text-black">{name}</div>
-      <div className="mt-3 flex items-center justify-between gap-3 text-[18px] font-semibold uppercase leading-snug tracking-[0.03em] text-black/70">
-        <span className="min-w-0 flex-1 overflow-hidden">{content}</span>
-        {price > 0 && <span className="shrink-0 font-semibold">{new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(price)}</span>}
-      </div>
-    </div>
-  );
+export interface EyeCardProps {
+  currentMilestone: ChildRitualMilestone;
+  allMilestones: ChildRitualMilestone[];
+  onSelectMilestone: (id: string) => void;
+  isPlayingTimeline?: boolean;
+  onTogglePlayTimeline?: () => void;
+  onPrevMilestone?: () => void;
+  onNextMilestone?: () => void;
+  gazeTargetPoint?: { x: number; y: number } | null;
+  forceLeftBlink?: boolean;
+  forceRightBlink?: boolean;
+  gestureBadge?: string | null;
 }
 
 export function EyeCard({
-  monsterBg = "#0062AD",
-  cardBg = "#FBF0DC",
-  eyeWhite = "#FBF0DC",
-  pupilColor = "#000000",
-  hexDisplay = "SAXOPHONE",
-  name = "Saxophoniste",
-  label = "Cocktail",
-  price = 0,
-  message = "",
-  displayMode = "ticker",
-  pattern = "none",
-  patternAnimated = false,
-  patternColor = "#000000",
-  patternScale = 28,
-  patternOpacity = 22,
-  patternRotation = 45,
+  currentMilestone,
+  allMilestones,
+  onSelectMilestone,
+  isPlayingTimeline = false,
+  onTogglePlayTimeline,
+  onPrevMilestone,
+  onNextMilestone,
+  gazeTargetPoint = null,
+  forceLeftBlink = false,
+  forceRightBlink = false,
+  gestureBadge = null,
 }: EyeCardProps) {
+  const cardContainerRef = useRef<HTMLDivElement>(null);
+  const [forceBlink, setForceBlink] = useState(false);
+  const [hoveredMilestone, setHoveredMilestone] = useState<ChildRitualMilestone | null>(null);
+
+  // Micro-blink on ritual change
+  useEffect(() => {
+    setForceBlink(true);
+    const timer = setTimeout(() => setForceBlink(false), 140);
+    return () => clearTimeout(timer);
+  }, [currentMilestone.id]);
+
   return (
-    <div style={{ backgroundColor: cardBg }} className="relative w-full overflow-hidden">
-      <div className="flex flex-col overflow-hidden">
+    <div
+      ref={cardContainerRef}
+      className="relative w-full max-w-[360px] sm:max-w-[380px] select-none mx-auto"
+    >
+      {/* SINGLE ICONIC LIVING TOTEM CARD (STRICTLY LOCKED FIXED FORMAT) */}
+      <div className="relative w-full overflow-hidden shadow-2xl rounded-2xl flex flex-col bg-[#FBF0DC] border border-black/10">
+        {/* Top Section: Monster Face (Strictly Square Aspect Ratio) */}
         <Monster
-          monsterBg={monsterBg}
-          eyeWhite={eyeWhite}
-          pupilColor={pupilColor}
-          pattern={pattern}
-          patternAnimated={patternAnimated}
-          patternColor={patternColor}
-          patternScale={patternScale}
-          patternOpacity={patternOpacity}
-          patternRotation={patternRotation}
+          monsterBg={currentMilestone.color}
+          eyeWhite="#FBF0DC"
+          pupilColor="#000000"
+          targetPoint={gazeTargetPoint}
+          forceBlink={forceBlink}
+          forceLeftBlink={forceLeftBlink}
+          forceRightBlink={forceRightBlink}
+          gestureBadge={gestureBadge}
         />
-        <Legend hexDisplay={hexDisplay} name={name} label={label} price={price} message={message} displayMode={displayMode} />
+
+        {/* ------------------------------------------------------------- */}
+        {/* Bottom Section: Socle (Strictly Fixed 145px Height)          */}
+        {/* ONLY: Horaire, Titre, et Timeline de pastilles                */}
+        {/* ------------------------------------------------------------- */}
+        <div
+          className="h-[145px] w-full px-5 py-4 flex flex-col justify-between select-none relative bg-[#FBF0DC] text-black"
+          data-name="socle-rituel"
+        >
+          {/* Header block with ONLY Time & Title */}
+          <div>
+            {/* 1. L'HORAIRE */}
+            <div className="text-[25px] sm:text-[27px] font-black uppercase font-mono tracking-tight text-black leading-none pb-1.5 border-b border-black/10">
+              {currentMilestone.timeSlot}
+            </div>
+
+            {/* 2. LE TITRE */}
+            <div className="mt-2 text-[20px] sm:text-[22px] font-black uppercase leading-tight tracking-[-0.01em] text-black truncate">
+              {currentMilestone.name}
+            </div>
+          </div>
+
+          {/* 3. TIMELINE DANS LE SOCLE : PASTILLES CHROMATIQUES ÉPURÉES */}
+          <div className="pt-2 border-t border-black/10 flex flex-col gap-1 select-none relative">
+            {/* Tooltip on hover */}
+            {hoveredMilestone && (
+              <div className="absolute -top-7 left-1/2 -translate-x-1/2 text-[9.5px] font-mono font-black px-2.5 py-0.5 rounded-full shadow-lg pointer-events-none whitespace-nowrap z-30 animate-in fade-in duration-100 flex items-center gap-1.5 bg-black text-white">
+                <span>{hoveredMilestone.timeSlot.split(" ")[0]}</span>
+                <span className="opacity-50">·</span>
+                <span>{hoveredMilestone.name}</span>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between gap-1.5">
+              {/* Play / Pause 24h simulation */}
+              {onTogglePlayTimeline && (
+                <button
+                  type="button"
+                  onClick={onTogglePlayTimeline}
+                  className="size-6 rounded-full flex items-center justify-center shrink-0 shadow-sm transition-transform active:scale-95 text-[9.5px] font-bold bg-black text-white hover:bg-neutral-800"
+                  title={isPlayingTimeline ? "Pause" : "Lecture 24h"}
+                >
+                  {isPlayingTimeline ? "❚❚" : "▶"}
+                </button>
+              )}
+
+              {/* Prev Arrow */}
+              {onPrevMilestone && (
+                <button
+                  type="button"
+                  onClick={onPrevMilestone}
+                  className="font-bold text-sm transition-colors px-1 text-black/40 hover:text-black"
+                  title="Précédent"
+                >
+                  ‹
+                </button>
+              )}
+
+              {/* Timeline Dots */}
+              <div className="flex-1 flex items-center justify-between gap-1 px-1 relative">
+                <div className="absolute left-2 right-2 top-1/2 -translate-y-1/2 h-[1px] pointer-events-none z-0 bg-black/15" />
+
+                {allMilestones.map((m) => {
+                  const isSelected = m.id === currentMilestone.id;
+                  return (
+                    <button
+                      key={m.id}
+                      type="button"
+                      onMouseEnter={() => setHoveredMilestone(m)}
+                      onMouseLeave={() => setHoveredMilestone(null)}
+                      onClick={() => {
+                        onSelectMilestone(m.id);
+                        playCardTone(m.color, "hover");
+                      }}
+                      className={`group relative flex items-center justify-center transition-all duration-150 z-10 ${
+                        isSelected ? "scale-125 z-20" : "hover:scale-115 opacity-75 hover:opacity-100"
+                      }`}
+                      title={`${m.timeSlot} : ${m.name}`}
+                    >
+                      <span
+                        className={`rounded-full transition-all ${
+                          isSelected
+                            ? "size-4.5 ring-2 ring-black shadow-md border-2 border-white"
+                            : "size-3 border border-black/30 shadow-xs"
+                        }`}
+                        style={{ backgroundColor: m.color }}
+                      />
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Next Arrow */}
+              {onNextMilestone && (
+                <button
+                  type="button"
+                  onClick={onNextMilestone}
+                  className="font-bold text-sm transition-colors px-1 text-black/40 hover:text-black"
+                  title="Suivant"
+                >
+                  ›
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
 }
+
+export default EyeCard;

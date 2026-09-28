@@ -8,6 +8,7 @@
     "dev": "vite"
   },
   "dependencies": {
+    "@mediapipe/tasks-vision": "^1.0.1",
     "@tailwindcss/vite": "4.1.12",
     "lucide-react": "0.487.0",
     "react": "18.3.1",
