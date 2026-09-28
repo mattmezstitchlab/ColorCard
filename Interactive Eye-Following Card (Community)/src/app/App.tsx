@@ -1,7 +1,10 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Volume2,
   VolumeX,
+  Camera,
+  HelpCircle,
+  Sparkles,
 } from "lucide-react";
 import {
   EyeCard,
@@ -11,575 +14,81 @@ import {
   StudioLogoIcon,
 } from "./components/ModernIcons";
 import { playCardTone, toggleAudioMute, getAudioMuted } from "./utils/audioSynth";
+import { EyeGestureEngine } from "./utils/eyeGestureEngine";
 
-// Curated Montessori & Child Rhythms Presets
+// Curated Montessori Rhythms Presets
 export const PRESETS_DATA: Record<string, { title: string; subtitle: string; milestones: ChildRitualMilestone[] }> = {
   ecole: {
-    title: "JOUR D'ÉCOLE & RITUELS DU QUOTIDIEN",
-    subtitle: "Jour d'école & Maison",
+    title: "JOUR D'ÉCOLE & RITUELS",
+    subtitle: "Jour d'école",
     milestones: [
-      {
-        id: "e-1",
-        name: "Réveil Doux & Habillage",
-        role: "Autonomie & Confiance en Soi",
-        color: "#FEF08A",
-        cardBg: "#FEFCE8",
-        timeSlot: "07:00 — 08:00",
-        startMinute: 420,
-        endMinute: 480,
-        location: "Chambre & Penderie",
-        message: "JE M'HABILLE SEUL ET JE RANGE MON PYJAMA",
-        phone: "PAPA & MAMAN",
-        equipment: "Vêtements préparés la veille sur la chaise basse",
-        notes: "Lumière naturelle et musique douce au réveil.",
-        agentGreeting: "BONJOUR PETIT EXPLORATEUR ! PRÊT POUR T'HABILLER TOUT SEUL ?",
-      },
-      {
-        id: "e-2",
-        name: "Petit-Déjeuner Solaire",
-        role: "Énergie & Vitalité du Matin",
-        color: "#F97316",
-        cardBg: "#FFF7ED",
-        timeSlot: "08:00 — 08:30",
-        startMinute: 480,
-        endMinute: 510,
-        location: "Cuisine & Table Familiale",
-        message: "JE MANGE MES FRUITS ET JE BOIS MON GRAND VERRE D'EAU",
-        phone: "PAPA & MAMAN",
-        equipment: "Bol, fruits frais, pain complet, carafe à ma taille",
-        notes: "Prendre le temps de savourer chaque bouchée.",
-        agentGreeting: "BON APPÉTIT ! FAIS LE PLEIN DE BELLE ÉNERGIE POUR LA JOURNÉE.",
-      },
-      {
-        id: "e-3",
-        name: "École & Découvertes",
-        role: "Curiosité & Partage en Groupe",
-        color: "#00A8E8",
-        cardBg: "#F0F9FF",
-        timeSlot: "08:30 — 12:00",
-        startMinute: 510,
-        endMinute: 720,
-        location: "Classe & Ateliers Sensoriels",
-        message: "J'APPRENDS DE NOUVELLES CHOSES ET J'AIDE MES AMIS",
-        phone: "ÉCOLE & ENSEIGNANT",
-        equipment: "Cartable léger, matériel Montessori, trousse de crayons",
-        notes: "Expériences concrètes et travail en binôme.",
-        agentGreeting: "BONNE MATINÉE D'APPRENTISSAGE ET DE BELLES DÉCOUVERTES !",
-      },
-      {
-        id: "e-4",
-        name: "Déjeuner & Récréation",
-        role: "Partage & Jeux Libres",
-        color: "#22C55E",
-        cardBg: "#F0FDF4",
-        timeSlot: "12:00 — 13:30",
-        startMinute: 720,
-        endMinute: 810,
-        location: "Cantine & Cour de Récréation",
-        message: "BON REPAS, RIRES ET JEUX EN PLEIN AIR AVEC LES COPAINS",
-        phone: "ÉCOLE & SURVEILLANCE",
-        equipment: "Ballon mousse, élastique, espace de jeux verts",
-        notes: "Mouvement libre et décharge motrice.",
-        agentGreeting: "C'EST LE MOMENT DE JOUER ET DE PROFITER DU SOLEIL !",
-      },
-      {
-        id: "e-5",
-        name: "Ateliers & Créativité",
-        role: "Dessin, Motricité & Poésie",
-        color: "#A855F7",
-        cardBg: "#FAF5FF",
-        timeSlot: "13:30 — 16:30",
-        startMinute: 810,
-        endMinute: 990,
-        location: "Atelier d'Art & Bibliothèque",
-        message: "JE PEINS, JE LIS ET JE LAISSE VOLER MON IMAGINATION",
-        phone: "ÉCOLE & MÉDIATHÈQUE",
-        equipment: "Pinceaux, gouaches naturelles, livres illustrés",
-        notes: "Création libre sans modèle imposé.",
-        agentGreeting: "LAISSE PARLER TA CRÉATIVITÉ ET TES COULEURS INTÉRIEURES !",
-      },
-      {
-        id: "e-6",
-        name: "Goûter & Temps Libre",
-        role: "Détente Saine Sans Écran",
-        color: "#FDBA74",
-        cardBg: "#FFF7ED",
-        timeSlot: "16:30 — 17:30",
-        startMinute: 990,
-        endMinute: 1050,
-        location: "Cuisine & Parc du Quartier",
-        message: "FRUIT, TARTINE ET JEUX EN PLEIN AIR SANS ÉCRAN",
-        phone: "PAPA & MAMAN",
-        equipment: "Goûter maison, gourde inox, vélo ou trottinette",
-        notes: "Transition douce après la journée d'école.",
-        agentGreeting: "BON GOÛTER ! PRENDS LE TEMPS DE SOUFFLER ET DE RIGOLER.",
-      },
-      {
-        id: "e-7",
-        name: "Concentration Montessori",
-        role: "Focus Calme & Autonomie",
-        color: "#006494",
-        cardBg: "#F0F9FF",
-        timeSlot: "17:30 — 18:30",
-        startMinute: 1050,
-        endMinute: 1110,
-        location: "Espace de Travail Silencieux",
-        message: "JE ME CONCENTRE 25 MINUTES DANS LE CALME ABSOLU",
-        phone: "PAPA & MAMAN",
-        equipment: "Minuteur visuel sablier, cahier de dessin, lampe chaude",
-        notes: "L'enfant choisit l'ordre de ses devoirs/lectures.",
-        agentGreeting: "MODE CONCENTRATION ACTIVÉ. TU EN ES TOTALEMENT CAPABLE !",
-      },
-      {
-        id: "e-8",
-        name: "Bain & Bulles d'Eau",
-        role: "Détente Corporelle & Jeu Doux",
-        color: "#38BDF8",
-        cardBg: "#F0F9FF",
-        timeSlot: "18:30 — 19:30",
-        startMinute: 1110,
-        endMinute: 1170,
-        location: "Salle de Bain",
-        message: "JEUX D'EAU, SAVON DOUX ET PYJAMA CHAUD",
-        phone: "PAPA & MAMAN",
-        equipment: "Jouets de bain en bois/silicone, serviette douce chaude",
-        notes: "Eau tiède relaxante pour faire baisser la tension du corps.",
-        agentGreeting: "DÉTENDEZ-VOUS DANS L'EAU CHAUDE ! LES BULLES SONT LÀ.",
-      },
-      {
-        id: "e-9",
-        name: "Dîner en Famille",
-        role: "Partage & Écoute Bienveillante",
-        color: "#EA580C",
-        cardBg: "#FFF7ED",
-        timeSlot: "19:30 — 20:30",
-        startMinute: 1170,
-        endMinute: 1230,
-        location: "Table Familiale",
-        message: "NOUS RACONTONS CHACUN NOTRE PLUS BEAU MOMENT DU JOUR",
-        phone: "PAPA & MAMAN",
-        equipment: "Table dressée ensemble, chandelle douce, repas chaud",
-        notes: "Règle des 3 gratitudes partagées autour de la table.",
-        agentGreeting: "BON DÎNER ENSEMBLE ! QUEL A ÉTÉ TON PLUS BEAU MOMENT ?",
-      },
-      {
-        id: "e-10",
-        name: "Histoire & Câlin du Soir",
-        role: "Sécurité Affective & Tendresse",
-        color: "#E9D5FF",
-        cardBg: "#FAF5FF",
-        timeSlot: "20:30 — 21:00",
-        startMinute: 1230,
-        endMinute: 1260,
-        location: "Lit Douillet & Cocon",
-        message: "UNE BELLE HISTOIRE APAISANTE AVANT DE FERMER LES YEUX",
-        phone: "PAPA & MAMAN",
-        equipment: "Livre illustré de contes, veilleuse tamisée, doudou",
-        notes: "Voix douce et 3 respirations profondes guidées.",
-        agentGreeting: "LE CONTE VA COMMENCER... INSTALLE-TOI CONFORTABLEMENT.",
-      },
-      {
-        id: "e-11",
-        name: "Nuit Étoilée & Sommeil",
-        role: "Régénération & Grands Rêves",
-        color: "#0B101E",
-        cardBg: "#0B101E",
-        timeSlot: "21:00 — 07:00",
-        startMinute: 1260,
-        endMinute: 420,
-        location: "Cocon de Sommeil",
-        message: "JE DORS PAISIBLEMENT, PROTÉGÉ ET EN SÉCURITÉ TOUTE LA NUIT",
-        phone: "PAPA & MAMAN",
-        equipment: "Veilleuse douce lune, obscurité protectrice, couette chaude",
-        notes: "Les yeux du totem s'apaisent pour veiller sur le sommeil.",
-        agentGreeting: "BONNE NUIT DOUCE. LES ÉTOILES VEILLENT SUR TON SOMMEIL.",
-      },
+      { id: "e-1", name: "Réveil Doux & Habillage", color: "#FEF08A", timeSlot: "07:00 — 08:00" },
+      { id: "e-2", name: "Petit-Déjeuner Solaire", color: "#F97316", timeSlot: "08:00 — 08:30" },
+      { id: "e-3", name: "École & Découvertes", color: "#00A8E8", timeSlot: "08:30 — 12:00" },
+      { id: "e-4", name: "Déjeuner & Récréation", color: "#22C55E", timeSlot: "12:00 — 13:30" },
+      { id: "e-5", name: "Ateliers & Créativité", color: "#A855F7", timeSlot: "13:30 — 16:30" },
+      { id: "e-6", name: "Goûter & Temps Libre", color: "#FDBA74", timeSlot: "16:30 — 17:30" },
+      { id: "e-7", name: "Concentration Montessori", color: "#006494", timeSlot: "17:30 — 18:30" },
+      { id: "e-8", name: "Bain & Bulles d'Eau", color: "#38BDF8", timeSlot: "18:30 — 19:30" },
+      { id: "e-9", name: "Dîner en Famille", color: "#EA580C", timeSlot: "19:30 — 20:30" },
+      { id: "e-10", name: "Histoire & Câlin", color: "#E9D5FF", timeSlot: "20:30 — 21:00" },
+      { id: "e-11", name: "Nuit Étoilée & Sommeil", color: "#0B101E", timeSlot: "21:00 — 07:00" },
     ],
   },
   mercredi: {
-    title: "MERCREDI NATURE, CRÉATION & AUTONOMIE",
+    title: "MERCREDI NATURE & CRÉATION",
     subtitle: "Mercredi Libre",
     milestones: [
-      {
-        id: "m-1",
-        name: "Réveil Paisible & Dessin Libre",
-        role: "Créativité & Joie du Matin",
-        color: "#FDE047",
-        cardBg: "#FEFCE8",
-        timeSlot: "08:00 — 09:30",
-        startMinute: 480,
-        endMinute: 570,
-        location: "Chambre & Tapis Doux",
-        message: "JE CRÉE MON PROPRE DESSIN AU RÉVEIL EN PYJAMA",
-        phone: "PAPA & MAMAN",
-        equipment: "Feuilles épaisses, pastels à la cire d'abeille",
-        notes: "Pas d'horaire strict, laisser l'éveil naturel opérer.",
-        agentGreeting: "BONJOUR ! C'EST MERCREDI, JOURNÉE D'INVENTION ET DE JEU !",
-      },
-      {
-        id: "m-2",
-        name: "Exploration Parc & Grand Air",
-        role: "Découverte Sensorielle & Nature",
-        color: "#84CC16",
-        cardBg: "#F0FDF4",
-        timeSlot: "09:30 — 12:00",
-        startMinute: 570,
-        endMinute: 720,
-        location: "Forêt & Parc Naturel",
-        message: "OBSERVATION DES OISEAUX, FEUILLES ET CABANES D'ARBRES",
-        phone: "PAPA & MAMAN",
-        equipment: "Loupe d'observation, panier en osier, bottes de pluie",
-        notes: "Ramasser des éléments naturels pour l'atelier de l'après-midi.",
-        agentGreeting: "EN AVANT POUR L'AVENTURE DANS LA NATURE ET LE GRAND AIR !",
-      },
-      {
-        id: "m-3",
-        name: "Cuisine Autonome & Repas",
-        role: "Motricité Fine & Autonomie Montessori",
-        color: "#FB923C",
-        cardBg: "#FFF7ED",
-        timeSlot: "12:00 — 13:30",
-        startMinute: 720,
-        endMinute: 810,
-        location: "Cuisine Basse",
-        message: "JE COUPE LES LÉGUMES ET JE DRESSE LA TABLE TOUT SEUL",
-        phone: "PAPA & MAMAN",
-        equipment: "Couteau d'apprentissage sécurisé en bois, tablier d'enfant",
-        notes: "L'enfant participe à toutes les étapes du repas.",
-        agentGreeting: "C'EST TOI LE CHEF ! TES MAINS SAVENT TOUT PRÉPARER.",
-      },
-      {
-        id: "m-4",
-        name: "Temps Calme & Conte Immersif",
-        role: "Repos des Yeux & Écoute",
-        color: "#007EA7",
-        cardBg: "#F0F9FF",
-        timeSlot: "13:30 — 15:30",
-        startMinute: 810,
-        endMinute: 930,
-        location: "Coussin de Lecture",
-        message: "JE PLONGE DANS MON LIVRE PRÉFÉRÉ OU J'ÉCOUTE UN CONTE",
-        phone: "PAPA & MAMAN",
-        equipment: "Boîte à histoires audio sans écran, gros pouf moelleux",
-        notes: "Musique relaxante d'ondes pures.",
-        agentGreeting: "MOMENT CALME ET DOUX POUR REPOSER TON CORPS ET TES YEUX.",
-      },
-      {
-        id: "m-5",
-        name: "Argile, Bricolage & Bois",
-        role: "Expérimentation Manuelle",
-        color: "#9A3412",
-        cardBg: "#FFF7ED",
-        timeSlot: "15:30 — 17:30",
-        startMinute: 930,
-        endMinute: 1050,
-        location: "Atelier Garage / Terrasse",
-        message: "JE SCULPTE, JE PONCE ET J'ASSEMBLE AVEC MES MAINS",
-        phone: "PAPA & MAMAN",
-        equipment: "Argile autodurcissante, écorces, ficelle de chanvre",
-        notes: "Créer un objet que l'enfant peut garder ou offrir.",
-        agentGreeting: "SCULPTE ET INVENTE LIBREMENT AVEC TES MAINS FABULEUSES !",
-      },
-      {
-        id: "m-6",
-        name: "Danse, Rires & Musique",
-        role: "Libération Motrice & Joie",
-        color: "#FF007F",
-        cardBg: "#FDF2F8",
-        timeSlot: "17:30 — 19:30",
-        startMinute: 1050,
-        endMinute: 1170,
-        location: "Salon / Espace Ouvert",
-        message: "DANSE ET JEUX RYTHMIQUES SANS AUCUN ÉCRAN",
-        phone: "PAPA & MAMAN",
-        equipment: "Maracas en bois, tambourin, musique acoustique entraînante",
-        notes: "Sauter, bouger et extérioriser toute l'énergie accumulée.",
-        agentGreeting: "METS DE LA MUSIQUE DANS TON CORPS ET DANSE DE BONNE HUMEUR !",
-      },
-      {
-        id: "m-7",
-        name: "Dîner Doux & Rangement Heureux",
-        role: "Responsabilité & Harmonie",
-        color: "#16A34A",
-        cardBg: "#F0FDF4",
-        timeSlot: "19:30 — 20:30",
-        startMinute: 1170,
-        endMinute: 1230,
-        location: "Maison & Chambre",
-        message: "JE REMETS MES OUTILS ET JOUETS DANS LEURS BACS",
-        phone: "PAPA & MAMAN",
-        equipment: "Bacs de rangement étiquetés par couleur",
-        notes: "Le plaisir de retrouver son espace net pour demain.",
-        agentGreeting: "CHAQUE JOUET RETROUVE SA MAISON DANS LE CALME.",
-      },
-      {
-        id: "m-8",
-        name: "Nuit des Constellations",
-        role: "Paix Absolue & Rêves Infinis",
-        color: "#1E1B4B",
-        cardBg: "#0E0E16",
-        timeSlot: "20:30 — 08:00",
-        startMinute: 1230,
-        endMinute: 480,
-        location: "Lit Cocon",
-        message: "JE PARS POUR UN MERVEILLEUX VOYAGE DANS LES ÉTOILES",
-        phone: "PAPA & MAMAN",
-        equipment: "Veilleuse constellation, couette moelleuse",
-        notes: "Sommeil profond et régénérant.",
-        agentGreeting: "BONNE NUIT DOUCE. TOUT LE MONDE REPOSE EN PAIX.",
-      },
+      { id: "m-1", name: "Réveil Paisible & Dessin", color: "#FDE047", timeSlot: "08:00 — 09:30" },
+      { id: "m-2", name: "Exploration Parc & Grand Air", color: "#84CC16", timeSlot: "09:30 — 12:00" },
+      { id: "m-3", name: "Cuisine Autonome & Repas", color: "#FB923C", timeSlot: "12:00 — 13:30" },
+      { id: "m-4", name: "Temps Calme & Lecture", color: "#007EA7", timeSlot: "13:30 — 15:30" },
+      { id: "m-5", name: "Argile & Bricolage Bois", color: "#9A3412", timeSlot: "15:30 — 17:30" },
+      { id: "m-6", name: "Danse & Jeux Sans Écran", color: "#FF007F", timeSlot: "17:30 — 19:30" },
+      { id: "m-7", name: "Dîner Doux & Rangement", color: "#16A34A", timeSlot: "19:30 — 20:30" },
+      { id: "m-8", name: "Nuit des Constellations", color: "#1E1B4B", timeSlot: "20:30 — 08:00" },
     ],
   },
   weekend: {
-    title: "WEEK-END, CABANE & VACANCES EN LIBERTÉ",
-    subtitle: "Week-end & Plein Air",
+    title: "WEEK-END & CABANE EN PLEIN AIR",
+    subtitle: "Week-end",
     milestones: [
-      {
-        id: "w-1",
-        name: "Matin Douceur en Pyjama",
-        role: "Temps Suspendu & Câlin",
-        color: "#FFEDD5",
-        cardBg: "#FFF7ED",
-        timeSlot: "08:30 — 10:00",
-        startMinute: 510,
-        endMinute: 600,
-        location: "Salon Douillet",
-        message: "TARTINES CHAUDES AU SOLEIL SANS AUCUN HORAIRE STRICT",
-        phone: "FAMILLE",
-        equipment: "Pancakes maison, confiture de fraises, chocolat chaud",
-        notes: "Discuter des envies d'exploration du week-end.",
-        agentGreeting: "C'EST LE WEEK-END ! PRENDS TOUT TON TEMPS EN DOUCEUR.",
-      },
-      {
-        id: "w-2",
-        name: "Cabane Secrète dans les Bois",
-        role: "Imagination & Coopération",
-        color: "#65A30D",
-        cardBg: "#F0FDF4",
-        timeSlot: "10:00 — 13:00",
-        startMinute: 600,
-        endMinute: 780,
-        location: "Sous-Bois & Clairière",
-        message: "CONSTRUCTION D'UN REFUGE EN BRANCHES ET FEUILLES",
-        phone: "FAMILLE",
-        equipment: "Ficelle, bâtons de bois, mousquetons",
-        notes: "Travail d'équipe et motricité globale.",
-        agentGreeting: "NOTRE CABANE SECRÈTE PREND FORME ! QUEL BEAU TRAVAIL.",
-      },
-      {
-        id: "w-3",
-        name: "Pique-Nique sur l'Herbe",
-        role: "Convivialité & Repas Partagé",
-        color: "#CA8A04",
-        cardBg: "#FEFCE8",
-        timeSlot: "13:00 — 15:00",
-        startMinute: 780,
-        endMinute: 900,
-        location: "Grande Pelouse Ensoleillée",
-        message: "REPAS SUR LA NAPPE, JEU DU CIEL ET RIGOLADES",
-        phone: "FAMILLE",
-        equipment: "Grande nappe à carreaux, fruits frais, jeux de cartes",
-        notes: "Observer les formes des nuages dans le ciel.",
-        agentGreeting: "REGARDE LES NUAGES ET PROFITE DU SOLEIL SUR L'HERBE !",
-      },
-      {
-        id: "w-4",
-        name: "Jeux de Société & Expériences",
-        role: "Stratégie, Logique & Rire",
-        color: "#0EA5E9",
-        cardBg: "#F0F9FF",
-        timeSlot: "15:00 — 18:00",
-        startMinute: 900,
-        endMinute: 1080,
-        location: "Table du Salon",
-        message: "EXPÉRIENCES SCIENTIFIQUES ET DÉFIS COOPÉRATIFS",
-        phone: "FAMILLE",
-        equipment: "Jeu coopératif en bois, kit d'expériences eau & lumière",
-        notes: "Tout le monde joue ensemble pour atteindre l'objectif.",
-        agentGreeting: "BRAVO POUR CETTE BELLE STRATÉGIE D'ÉQUIPE !",
-      },
-      {
-        id: "w-5",
-        name: "Dessin de la Plus Belle Émotion",
-        role: "Expression de Soi & Poésie",
-        color: "#D8B4FE",
-        cardBg: "#FAF5FF",
-        timeSlot: "18:00 — 19:30",
-        startMinute: 1080,
-        endMinute: 1170,
-        location: "Coin Créatif",
-        message: "JE REPRÉSENTE MON MEILLEUR SOUVENIR EN COULEURS",
-        phone: "FAMILLE",
-        equipment: "Grandes feuilles, aquarelle naturelle et pinceaux ronds",
-        notes: "L'enfant raconte l'histoire cachée dans son dessin.",
-        agentGreeting: "TES COULEURS RACONTENT UNE HISTOIRE MAGNIFIQUE.",
-      },
-      {
-        id: "w-6",
-        name: "Veillée aux Bougies & Étoiles",
-        role: "Douceur Partagée & Récits",
-        color: "#EAB308",
-        cardBg: "#FFF7ED",
-        timeSlot: "19:30 — 21:00",
-        startMinute: 1170,
-        endMinute: 1260,
-        location: "Terrasse ou Salon Tamisé",
-        message: "ÉCOUTE DU CONTE DE LA LUNE ET FEU DE CHEMINÉE",
-        phone: "FAMILLE",
-        equipment: "Bougies LED sécurisées, tisane aux fleurs douce",
-        notes: "Chuchoter et respirer la paix du soir.",
-        agentGreeting: "LA VEILLÉE EST DOUCE ET APAISANTE. FERME DOUCEMENT LES YEUX.",
-      },
-      {
-        id: "w-7",
-        name: "Grand Sommeil Régénérant",
-        role: "Sommeil Profond & Paix",
-        color: "#0F172A",
-        cardBg: "#0B101E",
-        timeSlot: "21:00 — 08:30",
-        startMinute: 1260,
-        endMinute: 510,
-        location: "Chambre Cocon",
-        message: "JE DORS D'UN SOMMEIL PROFOND ET SEREIN JUSQU'AU MATIN",
-        phone: "FAMILLE",
-        equipment: "Lit douillet, veilleuse bleue douce",
-        notes: "Récupération physique et mentale totale.",
-        agentGreeting: "DORS BIEN MON PETIT. LE MONDE ENTIER REPOSE EN PAIX.",
-      },
+      { id: "w-1", name: "Matin Douceur en Pyjama", color: "#FFEDD5", timeSlot: "08:30 — 10:00" },
+      { id: "w-2", name: "Cabane Secrète dans les Bois", color: "#65A30D", timeSlot: "10:00 — 13:00" },
+      { id: "w-3", name: "Pique-Nique sur l'Herbe", color: "#CA8A04", timeSlot: "13:00 — 15:00" },
+      { id: "w-4", name: "Jeux de Société & Rires", color: "#0EA5E9", timeSlot: "15:00 — 18:00" },
+      { id: "w-5", name: "Dessin des Émotions", color: "#D8B4FE", timeSlot: "18:00 — 19:30" },
+      { id: "w-6", name: "Veillée aux Bougies", color: "#EAB308", timeSlot: "19:30 — 21:00" },
+      { id: "w-7", name: "Grand Sommeil Réparateur", color: "#0F172A", timeSlot: "21:00 — 08:30" },
     ],
   },
   meteo_emotions: {
-    title: "MÉTÉO DU CŒUR & AUTO-RÉGULATION DES ÉMOTIONS",
+    title: "MÉTÉO DU CŒUR & ÉMOTIONS",
     subtitle: "Météo du Cœur",
     milestones: [
-      {
-        id: "emo-1",
-        name: "Joie du Matin & Sourire",
-        role: "Énergie Positive & Rayonnement",
-        color: "#FACC15",
-        cardBg: "#FEFCE8",
-        timeSlot: "08:00 — 10:00",
-        startMinute: 480,
-        endMinute: 600,
-        location: "Espace Lumière",
-        message: "JE ME SENS HEUREUX, LÉGER ET PLEIN D'ENTHOUSIASME",
-        phone: "CŒUR D'ENFANT",
-        equipment: "Sourire, carnet des fiertés, musique joyeuse",
-        notes: "Quand le soleil brille à l'intérieur de la poitrine.",
-        agentGreeting: "TON CŒUR EST ILLUMINÉ DE SOLEIL ! PARTAGE CETTE JOIE.",
-      },
-      {
-        id: "emo-2",
-        name: "Grosse Colère / Tempête Émotionnelle",
-        role: "Accueillir la Frustration & Décharger",
-        color: "#EF4444",
-        cardBg: "#FEF2F2",
-        timeSlot: "10:00 — 12:00",
-        startMinute: 600,
-        endMinute: 720,
-        location: "Coin Coussin Décharge",
-        message: "J'ACCUEILLE MON ORAGE ET JE SOUFFLE COMME LE VENT",
-        phone: "CŒUR D'ENFANT",
-        equipment: "Coussin de colère, mouchoirs, balle anti-stress",
-        notes: "La colère n'est pas interdite : on apprend à la canaliser.",
-        agentGreeting: "J'ACCUEILLE TA COLÈRE. RESPIRE AVEC MOI, JE NE TE JUGE PAS.",
-      },
-      {
-        id: "emo-3",
-        name: "Câlin Réconfortant & Sas Doux",
-        role: "Réconfort & Dépôt du Chagrin",
-        color: "#FDF2F8",
-        cardBg: "#FDF2F8",
-        timeSlot: "12:00 — 14:00",
-        startMinute: 720,
-        endMinute: 840,
-        location: "Bras Réconfortants & Canapé",
-        message: "UN GROS CÂLIN POUR APPORTER LA DOUCEUR À MON CŒUR",
-        phone: "CŒUR D'ENFANT",
-        equipment: "Couverture lestée, doudou fétiche, câlin chaleureux",
-        notes: "Laisser les larmes couler pour libérer les tensions.",
-        agentGreeting: "TOUT VA BIEN SE PASSER. TU ES PROTÉGÉ ET AIMÉ.",
-      },
-      {
-        id: "emo-4",
-        name: "Bulle Secrète & Respiration Zen",
-        role: "Retour au Calme & Ancrage",
-        color: "#14B8A6",
-        cardBg: "#F0FDFA",
-        timeSlot: "14:00 — 16:00",
-        startMinute: 840,
-        endMinute: 960,
-        location: "Tipi / Cabane Sensorielle",
-        message: "3 GRANDES INSPIRATIONS PROFONDES PAR LE NEZ",
-        phone: "CŒUR D'ENFANT",
-        equipment: "Plume magique pour souffler, bol tibétain doux",
-        notes: "Inspirer 3s, bloquer 3s, souffler 4s.",
-        agentGreeting: "SENS TON CORPS S'APAISER COMME UNE EAU LIMPIDE.",
-      },
-      {
-        id: "emo-5",
-        name: "Ciel Bleu & Légèreté Retrouvée",
-        role: "Clarté Mentale & Confiance",
-        color: "#7DD3FC",
-        cardBg: "#F0F9FF",
-        timeSlot: "16:00 — 18:00",
-        startMinute: 960,
-        endMinute: 1080,
-        location: "Terrasse & Fenêtre Ouverte",
-        message: "LE CIEL EST REVENU CLAIR ET SOURIANT DANS MON CŒUR",
-        phone: "CŒUR D'ENFANT",
-        equipment: "Bulles de savon à souffler dans l'air",
-        notes: "La fierté d'avoir traversé l'émotion difficile.",
-        agentGreeting: "LE SOLEIL BRILLE À NOUVEAU DANS TOUT TON CORPS !",
-      },
-      {
-        id: "emo-6",
-        name: "Gratitude & Récit du Soir",
-        role: "Reconnaissance & Paix",
-        color: "#C084FC",
-        cardBg: "#FAF5FF",
-        timeSlot: "18:00 — 20:00",
-        startMinute: 1080,
-        endMinute: 1200,
-        location: "Coin Méditation Douce",
-        message: "JE DIS MERCI POUR TOUT CE QUE J'AI APPRIS AUJOURD'HUI",
-        phone: "CŒUR D'ENFANT",
-        equipment: "Galet de gratitude à tenir dans la paume",
-        notes: "Nommer une chose dont on est fier aujourd'hui.",
-        agentGreeting: "TU AS ÉTÉ TRÈS COURAGEUX ET MAGNIFIQUE AUJOURD'HUI.",
-      },
-      {
-        id: "emo-7",
-        name: "Sécurité & Doux Sommeil",
-        role: "Cocon d'Amour Inconditionnel",
-        color: "#00171F",
-        cardBg: "#0B101E",
-        timeSlot: "20:00 — 08:00",
-        startMinute: 1200,
-        endMinute: 480,
-        location: "Cocon Protecteur",
-        message: "JE SUIS EN SÉCURITÉ DANS MON LIT, PROTÉGÉ ET CHÉRI",
-        phone: "CŒUR D'ENFANT",
-        equipment: "Veilleuse douce et berceuse harmonique",
-        notes: "Sommeil réparateur sans aucune angoisse.",
-        agentGreeting: "FERME LES YEUX EN TOUTE SÉCURITÉ. DORS PROFONDÉMENT.",
-      },
+      { id: "emo-1", name: "Joie du Matin & Sourire", color: "#FACC15", timeSlot: "08:00 — 10:00" },
+      { id: "emo-2", name: "Accueillir la Grosse Colère", color: "#EF4444", timeSlot: "10:00 — 12:00" },
+      { id: "emo-3", name: "Câlin Réconfortant & Sas Doux", color: "#FDF2F8", timeSlot: "12:00 — 14:00" },
+      { id: "emo-4", name: "Bulle & Respiration Zen", color: "#14B8A6", timeSlot: "14:00 — 16:00" },
+      { id: "emo-5", name: "Ciel Bleu & Légèreté", color: "#7DD3FC", timeSlot: "16:00 — 18:00" },
+      { id: "emo-6", name: "Gratitude du Soir", color: "#C084FC", timeSlot: "18:00 — 20:00" },
+      { id: "emo-7", name: "Sécurité & Doux Sommeil", color: "#00171F", timeSlot: "20:00 — 08:00" },
     ],
   },
 };
 
 export function App() {
   const [activePresetKey, setActivePresetKey] = useState(() => {
-    return localStorage.getItem("colorcard_child_preset_key_v10") || "ecole";
+    return localStorage.getItem("colorcard_child_preset_key_v16") || "ecole";
   });
 
   const [eventTitle, setEventTitle] = useState(() => {
-    return localStorage.getItem("colorcard_child_title_v10") || PRESETS_DATA.ecole.title;
+    return localStorage.getItem("colorcard_child_title_v16") || PRESETS_DATA.ecole.title;
   });
 
   const [milestones, setMilestones] = useState<ChildRitualMilestone[]>(() => {
     try {
-      const saved = localStorage.getItem("colorcard_child_milestones_v10");
+      const saved = localStorage.getItem("colorcard_child_milestones_v16");
       if (saved) return JSON.parse(saved);
     } catch {
       // fallback
@@ -595,13 +104,22 @@ export function App() {
   const [isMuted, setIsMuted] = useState<boolean>(() => getAudioMuted());
   const [isCopiedItinerary, setIsCopiedItinerary] = useState(false);
   const [showPresetMenu, setShowPresetMenu] = useState(false);
+  const [showGestureGuide, setShowGestureGuide] = useState(false);
+
+  // Camera Eye Detection State
+  const [isCameraActive, setIsCameraActive] = useState(false);
+  const [gazePoint, setGazePoint] = useState<{ x: number; y: number } | null>(null);
+  const [forceLeftBlink, setForceLeftBlink] = useState(false);
+  const [forceRightBlink, setForceRightBlink] = useState(false);
+  const [gestureBadge, setGestureBadge] = useState<string | null>(null);
+  const gestureEngineRef = useRef<EyeGestureEngine | null>(null);
 
   // Save to localStorage
   useEffect(() => {
     try {
-      localStorage.setItem("colorcard_child_milestones_v10", JSON.stringify(milestones));
-      localStorage.setItem("colorcard_child_title_v10", eventTitle);
-      localStorage.setItem("colorcard_child_preset_key_v10", activePresetKey);
+      localStorage.setItem("colorcard_child_milestones_v16", JSON.stringify(milestones));
+      localStorage.setItem("colorcard_child_title_v16", eventTitle);
+      localStorage.setItem("colorcard_child_preset_key_v16", activePresetKey);
     } catch {
       // silent
     }
@@ -616,29 +134,6 @@ export function App() {
     return milestones.findIndex((m) => m.id === activeMilestoneId);
   }, [milestones, activeMilestoneId]);
 
-  // Load a child preset
-  const handleSelectPreset = (key: string) => {
-    const preset = PRESETS_DATA[key];
-    if (!preset) return;
-
-    setActivePresetKey(key);
-    setEventTitle(preset.title);
-    setMilestones(preset.milestones);
-    setActiveMilestoneId(preset.milestones[0].id);
-    setShowPresetMenu(false);
-    playCardTone(preset.milestones[0].color, "change");
-  };
-
-  // Update ritual helper
-  const handleUpdateMilestone = (patch: Partial<ChildRitualMilestone>) => {
-    setMilestones((prev) =>
-      prev.map((m) => (m.id === activeMilestoneId ? { ...m, ...patch } : m))
-    );
-    if (patch.color) {
-      playCardTone(patch.color, "change");
-    }
-  };
-
   // Switch to previous or next ritual
   const handlePrev = () => {
     const prevIdx = (currentIndex - 1 + milestones.length) % milestones.length;
@@ -652,16 +147,86 @@ export function App() {
     playCardTone(milestones[nextIdx].color, "hover");
   };
 
+  const showGestureTrigger = (text: string) => {
+    setGestureBadge(text);
+    setTimeout(() => setGestureBadge(null), 1500);
+  };
+
+  // Setup Eye Gesture Engine
+  useEffect(() => {
+    gestureEngineRef.current = new EyeGestureEngine({
+      onRightWink: () => {
+        setForceRightBlink(true);
+        setTimeout(() => setForceRightBlink(false), 260);
+        showGestureTrigger("😉 Clin d'œil droit ➔ Suivant");
+        handleNext();
+      },
+      onLeftWink: () => {
+        setForceLeftBlink(true);
+        setTimeout(() => setForceLeftBlink(false), 260);
+        showGestureTrigger("😉 Clin d'œil gauche ➔ Précédent");
+        handlePrev();
+      },
+      onDoubleBlink: () => {
+        setIsPlayingTimeline((prev) => {
+          const next = !prev;
+          showGestureTrigger(next ? "👀 Double clignement ➔ Lecture 24H" : "👀 Double clignement ➔ Pause");
+          return next;
+        });
+      },
+      onLongEyesClosed: () => {
+        const lastMilestone = milestones[milestones.length - 1];
+        if (lastMilestone) {
+          setActiveMilestoneId(lastMilestone.id);
+          playCardTone(lastMilestone.color, "change");
+          showGestureTrigger("😴 Yeux fermés ➔ Rituel Sommeil & Nuit");
+        }
+      },
+      onGazeMove: (point) => {
+        setGazePoint(point);
+      },
+    });
+
+    return () => {
+      gestureEngineRef.current?.stop();
+    };
+  }, [milestones, currentIndex]);
+
+  const toggleCameraTracking = async () => {
+    if (isCameraActive) {
+      gestureEngineRef.current?.stop();
+      setIsCameraActive(false);
+      setGazePoint(null);
+      showGestureTrigger("📷 Caméra désactivée");
+    } else {
+      if (gestureEngineRef.current) {
+        const ok = await gestureEngineRef.current.start();
+        if (ok) {
+          setIsCameraActive(true);
+          showGestureTrigger("✨ Détection Yeux Activée !");
+        } else {
+          alert("Veuillez autoriser l'accès à la caméra pour tester la détection des clins d'œil.");
+        }
+      }
+    }
+  };
+
+  // Load a child preset
+  const handleSelectPreset = (key: string) => {
+    const preset = PRESETS_DATA[key];
+    if (!preset) return;
+
+    setActivePresetKey(key);
+    setEventTitle(preset.title);
+    setMilestones(preset.milestones);
+    setActiveMilestoneId(preset.milestones[0].id);
+    setShowPresetMenu(false);
+    playCardTone(preset.milestones[0].color, "change");
+  };
+
   // Keyboard navigation shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (
-        document.activeElement?.tagName === "INPUT" ||
-        document.activeElement?.tagName === "TEXTAREA"
-      ) {
-        return;
-      }
-
       if (e.key === "ArrowLeft") {
         e.preventDefault();
         handlePrev();
@@ -678,7 +243,7 @@ export function App() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [currentIndex, milestones]);
 
-  // Rhythm simulation playback: moves through milestones every 2.8 seconds
+  // Rhythm simulation playback: moves through milestones every 3.2 seconds
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (isPlayingTimeline) {
@@ -689,66 +254,19 @@ export function App() {
           playCardTone(milestones[nextIdx].color, "step");
           return milestones[nextIdx].id;
         });
-      }, 2800);
+      }, 3200);
     }
     return () => clearInterval(interval);
   }, [isPlayingTimeline, milestones]);
 
-  // Add custom ritual moment
-  const handleAddMoment = () => {
-    const newId = `r-${Date.now()}`;
-    const newMilestone: ChildRitualMilestone = {
-      id: newId,
-      name: "Nouveau Rituel",
-      role: "Autonomie & Confiance",
-      color: "#FACC15",
-      cardBg: "#FEFCE8",
-      timeSlot: "17:00 — 17:30",
-      startMinute: 1020,
-      endMinute: 1050,
-      location: "Espace Chambre",
-      message: "MON NOUVEAU RITUEL HEUREUX DU JOUR",
-      phone: "PAPA & MAMAN",
-      equipment: "Mon matériel d'activité",
-      notes: "Rituel personnalisé par l'enfant.",
-      agentGreeting: "BONJOUR ! C'EST L'HEURE DE TON NOUVEAU RITUEL.",
-    };
-
-    setMilestones((prev) => [...prev, newMilestone]);
-    setActiveMilestoneId(newId);
-    playCardTone(newMilestone.color, "step");
-  };
-
-  // Duplicate current ritual
-  const handleDuplicateCurrent = () => {
-    const dupId = `r-${Date.now()}`;
-    const dup: ChildRitualMilestone = {
-      ...currentMilestone,
-      id: dupId,
-      name: `${currentMilestone.name} (COPIE)`,
-    };
-    setMilestones((prev) => [...prev, dup]);
-    setActiveMilestoneId(dupId);
-    playCardTone(currentMilestone.color, "change");
-  };
-
-  // Delete current ritual
-  const handleDeleteCurrent = () => {
-    if (milestones.length <= 1) return;
-    const remaining = milestones.filter((m) => m.id !== activeMilestoneId);
-    setMilestones(remaining);
-    setActiveMilestoneId(remaining[0].id);
-    playCardTone("#DC2626", "change");
-  };
-
-  // Export clean 24h Montessori rhythm text to clipboard
+  // Export clean text
   const handleCopyFullItinerary = () => {
     const text = [
-      `TOTEM MONTESSORI · RITUEL DE LA JOURNÉE : ${eventTitle.toUpperCase()}`,
+      `TOTEM MONTESSORI · RITUEL : ${eventTitle.toUpperCase()}`,
       `───────────────────────────────────────────────────────`,
-      ...milestones.map((m, i) => `${i + 1}. [${m.timeSlot}] ${m.name} (${m.role})\n   Action : "${m.message}"\n   Lieu : ${m.location}`),
+      ...milestones.map((m, i) => `${i + 1}. [${m.timeSlot}] ${m.name}`),
       `───────────────────────────────────────────────────────`,
-      `ColorCard · Totem Temporel & Émotionnel pour Enfants`,
+      `ColorCard · Totem Temporel & Émotionnel`,
     ].join("\n");
 
     navigator.clipboard?.writeText(text);
@@ -759,12 +277,12 @@ export function App() {
   return (
     <div className="min-h-screen bg-[#070709] text-[#EDEDED] font-sans antialiased flex flex-col justify-between selection:bg-white selection:text-black">
       {/* ========================================================================= */}
-      {/* 1. TOP BAR (MINIMALIST MONTESSORI HEADER)                                  */}
+      {/* 1. TOP BAR (PROMINENT CAMERA EYE GESTURE BUTTON & PRESETS)                 */}
       {/* ========================================================================= */}
       <header className="bg-[#0A0A0E] border-b border-[#161620] px-4 lg:px-6 py-3 flex items-center justify-between select-none">
         {/* Brand & Ritual Preset Switcher */}
         <div className="flex items-center gap-3">
-          <div className="size-7 rounded bg-white text-black flex items-center justify-center shadow-md" title="ColorCard Enfant">
+          <div className="size-7 rounded-lg bg-white text-black flex items-center justify-center shadow-md" title="ColorCard Totem">
             <StudioLogoIcon size={16} />
           </div>
 
@@ -773,7 +291,7 @@ export function App() {
             <button
               type="button"
               onClick={() => setShowPresetMenu(!showPresetMenu)}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#14141E] hover:bg-[#1E1E2C] border border-[#222232] text-[10px] font-black uppercase tracking-wider text-white transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#14141E] hover:bg-[#1E1E2C] border border-[#222232] text-[10px] font-black uppercase tracking-wider text-white transition-colors"
             >
               <span>{PRESETS_DATA[activePresetKey]?.subtitle || "Rituels"}</span>
               <span className="text-[9px] opacity-50">▾</span>
@@ -781,9 +299,9 @@ export function App() {
 
             {/* Presets Popover */}
             {showPresetMenu && (
-              <div className="absolute left-0 top-8 w-64 bg-[#0E0E16] border border-white/20 rounded-xl shadow-2xl py-1.5 z-50 text-left space-y-0.5">
+              <div className="absolute left-0 top-9 w-64 bg-[#0E0E16] border border-white/20 rounded-xl shadow-2xl py-1.5 z-50 text-left space-y-0.5">
                 {[
-                  { key: "ecole", label: "Jour d'École & Rituels", desc: "11 étapes · Réveil, ateliers & nuit" },
+                  { key: "ecole", label: "Jour d'École & Rituels", desc: "11 étapes · Réveil doux à la nuit" },
                   { key: "mercredi", label: "Mercredi Nature & Création", desc: "8 étapes · Grand air, bois & rire" },
                   { key: "weekend", label: "Week-end & Plein Air", desc: "7 étapes · Cabane, pique-nique & repos" },
                   { key: "meteo_emotions", label: "Météo du Cœur & Émotions", desc: "7 étapes · Colère, apaisement & joie" },
@@ -807,19 +325,70 @@ export function App() {
           </div>
         </div>
 
-        {/* Center: Editable Ritual Day Title */}
-        <div className="hidden sm:flex items-center gap-2 bg-[#101017] border border-[#1C1C26] rounded-lg px-3.5 py-1 shadow-sm">
-          <input
-            type="text"
-            value={eventTitle}
-            onChange={(e) => setEventTitle(e.target.value.toUpperCase())}
-            placeholder="TITRE DU RYTHME DE LA JOURNÉE..."
-            className="text-[10.5px] font-black uppercase tracking-wider text-white bg-transparent border-b border-dashed border-transparent hover:border-white/30 focus:border-white outline-none text-center max-w-[320px]"
-          />
-          <span className="text-[9px] text-[#707085] font-bold">({milestones.length})</span>
+        {/* Center: PROMINENT CAMERA EYE DETECTION BUTTON */}
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={toggleCameraTracking}
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all shadow-md active:scale-95 border ${
+              isCameraActive
+                ? "bg-emerald-400 text-black border-emerald-300 ring-2 ring-emerald-400/50 animate-pulse"
+                : "bg-white text-black hover:bg-neutral-200 border-white"
+            }`}
+            title="Activer la détection caméra (Contrôle par clins d'œil et suivi du regard)"
+          >
+            {isCameraActive ? <Camera size={14} /> : <Sparkles size={14} />}
+            <span>{isCameraActive ? "DÉTECTION YEUX ACTIVE" : "ACTIVER DÉTECTION YEUX"}</span>
+          </button>
+
+          {/* Guide Popup Button */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setShowGestureGuide(!showGestureGuide)}
+              className="p-1.5 rounded-lg bg-[#14141E] hover:bg-[#1E1E2C] border border-[#222232] text-white/70 hover:text-white transition-colors"
+              title="Guide des codes secrets par clins d'œil"
+            >
+              <HelpCircle size={14} />
+            </button>
+
+            {showGestureGuide && (
+              <div className="absolute left-1/2 -translate-x-1/2 top-9 w-72 bg-[#0E0E16] border border-white/20 rounded-xl shadow-2xl p-3.5 z-50 text-left space-y-2 animate-in fade-in zoom-in-95 duration-150">
+                <div className="flex items-center justify-between border-b border-white/15 pb-1.5">
+                  <span className="text-[10.5px] font-black uppercase text-white">Codes Secrets du Regard</span>
+                  <button onClick={() => setShowGestureGuide(false)} className="text-white/50 hover:text-white text-xs font-bold">✕</button>
+                </div>
+                <div className="space-y-1.5 text-[9.5px] text-white/80">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-white">😉 Clin d'œil droit</span>
+                    <span className="text-emerald-400 font-mono">Rituel suivant ›</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-white">😉 Clin d'œil gauche</span>
+                    <span className="text-emerald-400 font-mono">Rituel précédent ‹</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-white">👀 Double clignement</span>
+                    <span className="text-amber-400 font-mono">Lecture / Pause ▶</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-white">😴 Yeux fermés (2s)</span>
+                    <span className="text-indigo-400 font-mono">Nuit & Dodo</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-white">👀 Suivi du regard</span>
+                    <span className="text-sky-400 font-mono">Le Totem te regarde</span>
+                  </div>
+                </div>
+                <div className="text-[8px] font-mono text-white/40 pt-1.5 border-t border-white/10 text-center">
+                  100% calculé en local · Zéro image envoyée
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Right Controls: Copy Ritual + Audio Toggle */}
+        {/* Right Controls: Copy & Audio */}
         <div className="flex items-center gap-2">
           <button
             type="button"
@@ -829,9 +398,9 @@ export function App() {
                 ? "bg-white text-black border-white shadow-sm"
                 : "bg-white/5 hover:bg-white/10 text-white border-white/20 active:scale-95"
             }`}
-            title="Copier le rythme complet pour impression ou affichage"
+            title="Copier le rythme complet"
           >
-            {isCopiedItinerary ? "Rituel copié !" : "Copier Rituels"}
+            {isCopiedItinerary ? "Copié !" : "Copier"}
           </button>
 
           <button
@@ -846,7 +415,7 @@ export function App() {
                 ? "bg-[#12121A] border-[#1E1E28] text-[#606070]"
                 : "bg-white text-black border-white shadow-sm"
             }`}
-            title={isMuted ? "Activer les sons harmoniques" : "Couper le son"}
+            title={isMuted ? "Activer le son" : "Couper le son"}
           >
             {isMuted ? <VolumeX size={13} /> : <Volume2 size={13} />}
           </button>
@@ -854,58 +423,44 @@ export function App() {
       </header>
 
       {/* ========================================================================= */}
-      {/* 2. CENTER LIVING CARD (THE MONTESSORI TEMPORAL & EMOTIONAL TOTEM)         */}
+      {/* 2. CENTER LIVING CARD (THE MONTESSORI TEMPORAL TOTEM)                     */}
       {/* ========================================================================= */}
       <main className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 select-none relative overflow-hidden bg-[#070709]">
-        <div className="w-full max-w-[370px] sm:max-w-[390px] flex flex-col items-center">
+        <div className="w-full max-w-[360px] sm:max-w-[380px] flex flex-col items-center">
           <EyeCard
             currentMilestone={currentMilestone}
             allMilestones={milestones}
             onSelectMilestone={(id) => setActiveMilestoneId(id)}
-            onUpdateMilestone={handleUpdateMilestone}
             isPlayingTimeline={isPlayingTimeline}
             onTogglePlayTimeline={() => setIsPlayingTimeline(!isPlayingTimeline)}
             onPrevMilestone={handlePrev}
             onNextMilestone={handleNext}
-            onAddMilestone={handleAddMoment}
+            gazeTargetPoint={gazePoint}
+            forceLeftBlink={forceLeftBlink}
+            forceRightBlink={forceRightBlink}
+            gestureBadge={gestureBadge}
           />
 
-          {/* Minimalist Sub-Card Action Row */}
+          {/* Minimalist Sub-Card Action Bar */}
           <div className="w-full flex items-center justify-between text-[9.5px] font-bold text-[#656575] mt-3 px-1">
             <span className="font-mono text-white/80">
-              {currentIndex + 1} / {milestones.length}
+              Rituel {currentIndex + 1} / {milestones.length}
             </span>
 
-            <div className="flex items-center gap-3">
+            {/* Quick camera switch link if camera is off */}
+            {!isCameraActive ? (
               <button
                 type="button"
-                onClick={handleDuplicateCurrent}
-                className="hover:text-white transition-colors"
-                title="Dupliquer ce rituel"
+                onClick={toggleCameraTracking}
+                className="text-[9px] text-white/80 hover:text-white underline font-mono flex items-center gap-1 transition-colors"
               >
-                Dupliquer
+                <span>Activer le contrôle par clins d'œil</span>
               </button>
-
-              <button
-                type="button"
-                onClick={handleAddMoment}
-                className="hover:text-white transition-colors"
-                title="Ajouter un rituel"
-              >
-                + Rituel
-              </button>
-
-              {milestones.length > 1 && (
-                <button
-                  type="button"
-                  onClick={handleDeleteCurrent}
-                  className="hover:text-red-400 transition-colors"
-                  title="Supprimer ce rituel"
-                >
-                  Supprimer
-                </button>
-              )}
-            </div>
+            ) : (
+              <span className="text-[9px] text-emerald-400 font-mono">
+                Clignez de l'œil droit ou gauche
+              </span>
+            )}
           </div>
         </div>
       </main>
@@ -913,8 +468,8 @@ export function App() {
       {/* ========================================================================= */}
       {/* 3. MINIMAL CLEAN FOOTER                                                    */}
       {/* ========================================================================= */}
-      <footer className="py-2 text-center text-[9px] text-[#454555] font-mono select-none">
-        Naviguez entre les rituels avec les pastilles dans le socle ou [←] [→] et [Espace]
+      <footer className="py-2.5 text-center text-[9px] text-[#454555] font-mono select-none">
+        Totem Temporel Montessori · Contrôle par pastilles, clavier ou clins d'œil
       </footer>
     </div>
   );
