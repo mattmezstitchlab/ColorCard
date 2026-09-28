@@ -5,6 +5,7 @@ import {
   Camera,
   HelpCircle,
   Sparkles,
+  SlidersHorizontal,
 } from "lucide-react";
 import {
   EyeCard,
@@ -14,7 +15,14 @@ import {
   StudioLogoIcon,
 } from "./components/ModernIcons";
 import { playCardTone, toggleAudioMute, getAudioMuted } from "./utils/audioSynth";
-import { EyeGestureEngine } from "./utils/eyeGestureEngine";
+import { EyeGestureEngine, DEFAULT_SETTINGS } from "./utils/eyeGestureEngine";
+import type {
+  EngineErrorCode,
+  EngineStatus,
+  EyeGestureSettings,
+  EyeMetrics,
+} from "./utils/eyeGestureEngine";
+import { EyeTrackingPanel } from "./components/EyeTrackingPanel";
 
 // Curated Montessori Rhythms Presets
 export const PRESETS_DATA: Record<string, { title: string; subtitle: string; milestones: ChildRitualMilestone[] }> = {
@@ -114,6 +122,23 @@ export function App() {
   const [gestureBadge, setGestureBadge] = useState<string | null>(null);
   const gestureEngineRef = useRef<EyeGestureEngine | null>(null);
 
+  // Eye tracking diagnostics & tuning
+  const [showEyePanel, setShowEyePanel] = useState(false);
+  const [engineStatus, setEngineStatus] = useState<EngineStatus>("idle");
+  const [eyeMetrics, setEyeMetrics] = useState<EyeMetrics | null>(null);
+  const [eyeError, setEyeError] = useState<{ code: EngineErrorCode; message: string } | null>(null);
+  const [calibrationProgress, setCalibrationProgress] = useState<number | null>(null);
+  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
+  const [eyeSettings, setEyeSettings] = useState<EyeGestureSettings>(() => {
+    try {
+      const saved = localStorage.getItem("colorcard_eye_settings_v2");
+      if (saved) return { ...DEFAULT_SETTINGS, ...JSON.parse(saved) };
+    } catch {
+      // fallback
+    }
+    return DEFAULT_SETTINGS;
+  });
+
   // Save to localStorage
   useEffect(() => {
     try {
@@ -152,63 +177,115 @@ export function App() {
     setTimeout(() => setGestureBadge(null), 1500);
   };
 
-  // Setup Eye Gesture Engine
-  useEffect(() => {
-    gestureEngineRef.current = new EyeGestureEngine({
-      onRightWink: () => {
-        setForceRightBlink(true);
-        setTimeout(() => setForceRightBlink(false), 260);
-        showGestureTrigger("😉 Clin d'œil droit ➔ Suivant");
-        handleNext();
-      },
-      onLeftWink: () => {
-        setForceLeftBlink(true);
-        setTimeout(() => setForceLeftBlink(false), 260);
-        showGestureTrigger("😉 Clin d'œil gauche ➔ Précédent");
-        handlePrev();
-      },
-      onDoubleBlink: () => {
-        setIsPlayingTimeline((prev) => {
-          const next = !prev;
-          showGestureTrigger(next ? "👀 Double clignement ➔ Lecture 24H" : "👀 Double clignement ➔ Pause");
-          return next;
-        });
-      },
-      onLongEyesClosed: () => {
-        const lastMilestone = milestones[milestones.length - 1];
-        if (lastMilestone) {
-          setActiveMilestoneId(lastMilestone.id);
-          playCardTone(lastMilestone.color, "change");
-          showGestureTrigger("😴 Yeux fermés ➔ Rituel Sommeil & Nuit");
-        }
-      },
-      onGazeMove: (point) => {
-        setGazePoint(point);
-      },
-    });
+  // Live reference to the freshest navigation handlers.
+  // The engine MUST NOT be recreated when the active ritual changes: doing so
+  // tore down the webcam right after the first successful wink (v1 bug).
+  const liveActionsRef = useRef({
+    next: () => {},
+    prev: () => {},
+    togglePlay: () => {},
+    goToNight: () => {},
+  });
 
-    return () => {
-      gestureEngineRef.current?.stop();
-    };
-  }, [milestones, currentIndex]);
+  liveActionsRef.current = {
+    next: handleNext,
+    prev: handlePrev,
+    togglePlay: () => setIsPlayingTimeline((prev) => !prev),
+    goToNight: () => {
+      const lastMilestone = milestones[milestones.length - 1];
+      if (lastMilestone) {
+        setActiveMilestoneId(lastMilestone.id);
+        playCardTone(lastMilestone.color, "change");
+      }
+    },
+  };
+
+  const eyeSettingsRef = useRef(eyeSettings);
+  eyeSettingsRef.current = eyeSettings;
+
+  // Setup Eye Gesture Engine — created ONCE for the whole app lifetime.
+  useEffect(() => {
+    const engine = new EyeGestureEngine(
+      {
+        onRightWink: () => {
+          setForceRightBlink(true);
+          setTimeout(() => setForceRightBlink(false), 260);
+          showGestureTrigger("😉 Clin d'œil droit ➔ Suivant");
+          liveActionsRef.current.next();
+        },
+        onLeftWink: () => {
+          setForceLeftBlink(true);
+          setTimeout(() => setForceLeftBlink(false), 260);
+          showGestureTrigger("😉 Clin d'œil gauche ➔ Précédent");
+          liveActionsRef.current.prev();
+        },
+        onDoubleBlink: () => {
+          setIsPlayingTimeline((prev) => {
+            const next = !prev;
+            showGestureTrigger(next ? "👀 Double clignement ➔ Lecture 24H" : "👀 Double clignement ➔ Pause");
+            return next;
+          });
+        },
+        onLongEyesClosed: () => {
+          liveActionsRef.current.goToNight();
+          showGestureTrigger("😴 Yeux fermés ➔ Rituel Sommeil & Nuit");
+        },
+        onGazeMove: (point) => setGazePoint(point),
+        onStatusChange: (status) => setEngineStatus(status),
+        onMetrics: (metrics) => setEyeMetrics(metrics),
+        onCalibrationProgress: (progress) => setCalibrationProgress(progress),
+        onError: (code, message) => {
+          setEyeError({ code, message });
+          setShowEyePanel(true);
+        },
+      },
+      eyeSettingsRef.current
+    );
+
+    gestureEngineRef.current = engine;
+    return () => engine.stop();
+  }, []);
+
+  // Push tuning changes to the engine and persist them.
+  useEffect(() => {
+    gestureEngineRef.current?.setSettings(eyeSettings);
+    try {
+      localStorage.setItem("colorcard_eye_settings_v2", JSON.stringify(eyeSettings));
+    } catch {
+      // silent
+    }
+  }, [eyeSettings]);
 
   const toggleCameraTracking = async () => {
+    const engine = gestureEngineRef.current;
+    if (!engine) return;
+
     if (isCameraActive) {
-      gestureEngineRef.current?.stop();
+      engine.stop();
       setIsCameraActive(false);
       setGazePoint(null);
+      setCameraStream(null);
+      setEyeMetrics(null);
+      setEyeError(null);
+      setEngineStatus("idle");
       showGestureTrigger("📷 Caméra désactivée");
     } else {
-      if (gestureEngineRef.current) {
-        const ok = await gestureEngineRef.current.start();
-        if (ok) {
-          setIsCameraActive(true);
-          showGestureTrigger("✨ Détection Yeux Activée !");
-        } else {
-          alert("Veuillez autoriser l'accès à la caméra pour tester la détection des clins d'œil.");
-        }
+      setEyeError(null);
+      const ok = await engine.start();
+      if (ok) {
+        setIsCameraActive(true);
+        setCameraStream(engine.getStream());
+        setShowEyePanel(true);
+        showGestureTrigger("✨ Détection Yeux Activée !");
+      } else {
+        setIsCameraActive(false);
+        setShowEyePanel(true);
       }
     }
+  };
+
+  const handleCalibrate = () => {
+    gestureEngineRef.current?.startCalibration();
   };
 
   // Load a child preset
@@ -273,6 +350,12 @@ export function App() {
     setIsCopiedItinerary(true);
     setTimeout(() => setIsCopiedItinerary(false), 2000);
   };
+
+  // Live mirror: the totem closes the same eye as the user, in real time.
+  // It is the clearest possible feedback that detection is actually working.
+  const isLiveMirroring = isCameraActive && !!eyeMetrics?.faceDetected;
+  const totemLeftClosed = forceLeftBlink || (isLiveMirroring && !eyeMetrics!.leftOpen);
+  const totemRightClosed = forceRightBlink || (isLiveMirroring && !eyeMetrics!.rightOpen);
 
   return (
     <div className="min-h-screen bg-[#070709] text-[#EDEDED] font-sans antialiased flex flex-col justify-between selection:bg-white selection:text-black">
@@ -341,6 +424,20 @@ export function App() {
             <span>{isCameraActive ? "DÉTECTION YEUX ACTIVE" : "ACTIVER DÉTECTION YEUX"}</span>
           </button>
 
+          {/* Eye tracking diagnostics & tuning */}
+          <button
+            type="button"
+            onClick={() => setShowEyePanel((v) => !v)}
+            className={`p-1.5 rounded-lg border transition-colors ${
+              showEyePanel
+                ? "bg-white text-black border-white"
+                : "bg-[#14141E] hover:bg-[#1E1E2C] border-[#222232] text-white/70 hover:text-white"
+            } ${eyeError ? "ring-2 ring-rose-500/60" : ""}`}
+            title="Réglages & diagnostic de la détection des yeux"
+          >
+            <SlidersHorizontal size={14} />
+          </button>
+
           {/* Guide Popup Button */}
           <div className="relative">
             <button
@@ -379,6 +476,10 @@ export function App() {
                     <span className="font-bold text-white">👀 Suivi du regard</span>
                     <span className="text-sky-400 font-mono">Le Totem te regarde</span>
                   </div>
+                </div>
+                <div className="text-[8.5px] text-amber-300/90 bg-amber-500/10 rounded-lg px-2 py-1.5 leading-relaxed">
+                  Astuce : garde le clin d'œil fermé ~1/3 de seconde. Un
+                  clignement des deux yeux n'est jamais pris pour un clin d'œil.
                 </div>
                 <div className="text-[8px] font-mono text-white/40 pt-1.5 border-t border-white/10 text-center">
                   100% calculé en local · Zéro image envoyée
@@ -436,8 +537,8 @@ export function App() {
             onPrevMilestone={handlePrev}
             onNextMilestone={handleNext}
             gazeTargetPoint={gazePoint}
-            forceLeftBlink={forceLeftBlink}
-            forceRightBlink={forceRightBlink}
+            forceLeftBlink={totemLeftClosed}
+            forceRightBlink={totemRightClosed}
             gestureBadge={gestureBadge}
           />
 
@@ -457,11 +558,35 @@ export function App() {
                 <span>Activer le contrôle par clins d'œil</span>
               </button>
             ) : (
-              <span className="text-[9px] text-emerald-400 font-mono">
-                Clignez de l'œil droit ou gauche
-              </span>
+              <button
+                type="button"
+                onClick={() => setShowEyePanel((v) => !v)}
+                className={`text-[9px] font-mono transition-colors hover:underline ${
+                  eyeMetrics?.faceDetected ? "text-emerald-400" : "text-amber-400"
+                }`}
+              >
+                {eyeMetrics?.faceDetected
+                  ? "Clignez de l'œil droit ou gauche"
+                  : engineStatus === "loading-model"
+                    ? "Chargement du modèle…"
+                    : "Placez-vous face à la caméra"}
+              </button>
             )}
           </div>
+
+          {/* Eye detection diagnostics & tuning */}
+          <EyeTrackingPanel
+            open={showEyePanel}
+            onClose={() => setShowEyePanel(false)}
+            stream={cameraStream}
+            status={engineStatus}
+            metrics={eyeMetrics}
+            error={eyeError}
+            settings={eyeSettings}
+            onSettingsChange={(partial) => setEyeSettings((prev) => ({ ...prev, ...partial }))}
+            onCalibrate={handleCalibrate}
+            calibrationProgress={calibrationProgress}
+          />
         </div>
       </main>
 

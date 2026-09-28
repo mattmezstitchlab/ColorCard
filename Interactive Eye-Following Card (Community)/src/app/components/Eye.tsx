@@ -9,6 +9,8 @@ export interface EyeProps {
   pupilColor?: string;
   targetPoint?: { x: number; y: number } | null;
   forceBlink?: boolean;
+  /** Paupière maintenue fermée (miroir temps réel de l'œil de l'utilisateur). */
+  forceEyeClosed?: boolean;
   gazeMode?: GazeMode;
   isRightEye?: boolean;
   compact?: boolean;
@@ -21,6 +23,7 @@ export function Eye({
   pupilColor = "#000000",
   targetPoint = null,
   forceBlink = false,
+  forceEyeClosed = false,
   gazeMode = "cursor",
   compact = false,
 }: EyeProps) {
@@ -149,7 +152,7 @@ export function Eye({
       } ${className}`}
       style={{
         backgroundColor: effectiveWhite,
-        transform: isBlinking || forceBlink ? "scaleY(0.06)" : "scaleY(1)",
+        transform: isBlinking || forceBlink || forceEyeClosed ? "scaleY(0.06)" : "scaleY(1)",
         transformOrigin: "center",
       }}
       data-name="eye"
