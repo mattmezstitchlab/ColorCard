@@ -279,7 +279,7 @@ export default function App() {
                 pupilColor="#000"
                 hexDisplay={(activeCard?.category ?? previewCategory).toUpperCase()}
                 name={activeCard?.name ?? (name || "Ma carte")}
-                label={activeCard ? [activeCard.role, activeCard.city].filter(Boolean).join(" · ") : [role || "Choisir un rôle", city].filter(Boolean).join(" · ")}
+                label={activeCard ? [activeCard.role, activeCard.city].filter(Boolean).join(" · ") : [role || "Ajouter un rôle", city].filter(Boolean).join(" · ")}
                 message={visibleMessage || "Écrivez quelque chose…"}
                 displayMode={visibleMode}
               />
